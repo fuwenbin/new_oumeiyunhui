@@ -53,6 +53,10 @@ def initConnectToMysql(hostaddress,user,password):
     return dbConnected
 
 def initLog(syslogpath):
+    import os 
+    if not os.path.exists(syslogpath):
+        os.mkdir(syslogpath)
+    
     logger = logging.getLogger()
     log_handler = logging.handlers.RotatingFileHandler(syslogpath+"/syslog.log",maxBytes = 104857600,backupCount=50)
     formatter = logging.Formatter('[%(asctime)s %(levelname)]s:%(filename)s:%(funcName)s:%(message)s')
@@ -60,13 +64,16 @@ def initLog(syslogpath):
     logger.addHandler(log_handler)
     logger.setLevel(logging.NOTSET)
     
-def initRedis(host,port,db,pwd):
+def initRedisThread(host,port,db,pwd):
     from db.redisclient import  RedisReading
-    return RedisReading(host=host,port = port,db=db,password=pwd)
+    return RedisReading(host,port,db,pwd)
     
 def main():
     default_config,mysql_config,redis_config = initConfigParams()
     initLog(default_config[1])
+    from db.redisclient import  RedisReading
+    thread = RedisReading(*redis_config)
+    thread.start()
     server = httpserver.HTTPServer(MyApplication(mysql_config,redis_config))
     server.bind(default_config[0])
     server.start(1)
