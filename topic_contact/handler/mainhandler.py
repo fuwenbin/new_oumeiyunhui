@@ -10,11 +10,10 @@ import tornado.web
 class MainHandler(tornado.web.RequestHandler):
     
     '''this class will handle all request .  it will payout request to the specific handler'''
-    
+    @tornado.web.asynchronous
     def get(self):
-        
         self.request.write("hello get method ! server is runging")
     
+    @tornado.web.asynchronous
     def post(self):
-        
         self.request.write("hello post method ! server is runging")
