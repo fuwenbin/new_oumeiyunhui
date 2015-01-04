@@ -13,7 +13,10 @@ class MainHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         self.request.write("hello get method ! server is runging")
-    
+        print "requst get"
+        self.request.finish()
     @tornado.web.asynchronous
     def post(self):
         self.request.write("hello post method ! server is runging")
+        print "request post"
+        self.request.finish()

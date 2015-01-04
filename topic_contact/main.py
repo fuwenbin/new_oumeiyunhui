@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 '''
 Created on 2014-12-29
 
@@ -16,19 +16,23 @@ from handler.mainhandler import MainHandler
 class MyApplication(tornado.web.Application):
     """application init here"""
     
-    def __init__(self,mysqlconfig,redisconfig):
+    def __init__(self,conn,redisconfig):
         
-        starttime = time.time()
+        start = time.time()
         
         handlers = [
-                    (r"/",MainHandler),#
+                    (r"/communicate",MainHandler)
                     ]
         
         settings = dict(gzip= True,
-                       debug = False)
-        self.conn = initConnectToMysql(*mysqlconfig)
+                       debug = True)
+        self.conn = conn
         tornado.web.Application.__init__(self,handlers=handlers,**settings)
         
+        end = time.time()
+        
+        logging.info("...starting server for time:"+str((end-start)*1000)+u"毫秒")
+        print("...starting server for time:"+str((end-start)*1000)+u"毫秒")
 def initConfigParams():
     from ConfigParser import ConfigParser        
     parser = ConfigParser()
@@ -59,7 +63,7 @@ def initLog(syslogpath):
     
     logger = logging.getLogger()
     log_handler = logging.handlers.RotatingFileHandler(syslogpath+"/syslog.log",maxBytes = 104857600,backupCount=50)
-    formatter = logging.Formatter('[%(asctime)s %(levelname)]s:%(filename)s:%(funcName)s:%(message)s')
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s:%(filename)s:%(funcName)s:%(message)s')
     log_handler.setFormatter(formatter)
     logger.addHandler(log_handler)
     logger.setLevel(logging.NOTSET)
@@ -71,10 +75,11 @@ def initRedisThread(host,port,db,pwd):
 def main():
     default_config,mysql_config,redis_config = initConfigParams()
     initLog(default_config[1])
+    conn = initConnectToMysql(*mysql_config)
     from db.redisclient import  RedisReading
-    thread = RedisReading(*redis_config)
+    thread = RedisReading(*(redis_config+(conn,)))
     thread.start()
-    server = httpserver.HTTPServer(MyApplication(mysql_config,redis_config))
+    server = httpserver.HTTPServer(MyApplication(conn,redis_config))
     server.bind(default_config[0])
     server.start(1)
     tornado.ioloop.IOLoop.instance().start()
