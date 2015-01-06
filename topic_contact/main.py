@@ -21,11 +21,11 @@ class MyApplication(tornado.web.Application):
         start = time.time()
         
         handlers = [
-                    (r"/communicate",MainHandler)
+                    (r"/communicate/api/([a-z]+)",MainHandler)
                     ]
         
         settings = dict(gzip= True,
-                       debug = True)
+                       debug = False)
         self.conn = conn
         tornado.web.Application.__init__(self,handlers=handlers,**settings)
         
