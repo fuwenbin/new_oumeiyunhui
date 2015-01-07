@@ -6,56 +6,43 @@ Created on 2015-1-6
 @author: fuwenbin
 '''
 from processor import Processor
-from db.mydb import MyDB
-from tornado.escape import json_encode
+import time
+from constants.constant import Topic_Constants
 class TopicDetail(Processor):
     '''获取话题详情'''
     def dowork(self):
         
-        mydb = MyDB(self.conn)
         topicid = self.jsonbody['topic_id']
         
-        row_entity = mydb.getTopicInfo(topicid)
-        level0_comments = mydb.getTopicOfCommentLevel1(row_entity.topic_id)
+        row_entity = self.mydb.getTopicInfo(topicid)
+        
         topic_obj = {}
-        topic_obj['topicid']
-        topic_obj['publisher_id']
-        topic_obj['title']
-        topic_obj['ptime']
-        topic_obj['support_sum']
-        topic_obj['comment_sum']
-        topic_obj['topic_type']
-        topic_obj['content']
-        
+        topic_obj['topicid'] = row_entity.topicid
+        topic_obj['publisher_id'] = row_entity.publisher_id
+        if row_entity.topic_type == 0 :  #文字  and 评论
+            topic_obj['title'] = row_entity.publisher_name
+            content = {}
+            content['text'] = row_entity.content
+            topic_obj['content'] = content 
+        elif row_entity.topic_type == 1: #平仓 
+            closeoutinfo = self.mydb.getcloseoutTopicInfo(row_entity.relation_key)
+            topic_obj['title'] = row_entity.publisher_name + " " + Topic_Constants.closeout_ch + " " + closeoutinfo.out_type
+            topic_obj['content'] = closeoutinfo
+        topic_obj['ptime'] = time.mktime(time.strptime(row_entity['ctime'], "%Y-%m-%d %H:%M:%S")) - time.time()
+        topic_obj['support_sum'] = row_entity.support_sum
+        topic_obj['comment_sum'] = row_entity.comment_sum
+        topic_obj['tramsmit_sum'] = row_entity.tramsmit_sum
+        topic_obj['topic_type'] = row_entity.topic_type
         comments_list = []
-        for comment in level0_comments:
-            comment_obj = {}
-            comment_obj['topicid']
-            comment_obj['publisher_name']
-            comment_obj['publisher_icon']
-            comment_obj['publisher_icon']
-            comment_obj['support_sum']
-            comment_obj['title']
-            comment_obj['ptime']
-            
-            
+        level1_comments = self.mydb.getTopicOfCommentLevel1(row_entity.topic_id)
+        for comment in level1_comments:
+            comment['ptime'] = time.mktime(time.strptime(comment['ctime'], "%Y-%m-%d %H:%M:%S")) - time.time()
             discuss_list = []
-            level1_comments = mydb.getTopicOfCommentLevel2(comment.topic_id, comment.by_comment_id)
-            for discuss in level1_comments:
-                discuss_obj = {}
-                discuss_obj['publisher_id']
-                discuss_obj['publisher_name']
-                discuss_obj['publisher_icon']
-                discuss_obj['content']
-                discuss_obj['ptime']
-                discuss_obj['support_sum']
-                discuss_obj['discuss_sum']
-                
-                discuss_list.append(discuss_obj)
-            comment_obj['discuss_list']
-            comments_list.append(comment_obj)
-            
-        
+            level2_comments = self.mydb.getTopicOfCommentLevel2(comment.topic_id,comment.by_comment_id)
+            for discuss in level2_comments:
+                discuss['ptime']= time.mktime(time.strptime(discuss['ctime'], "%Y-%m-%d %H:%M:%S")) - time.time()
+                discuss_list.append(discuss)
+            comments_list.append(comment)
         topic_obj['comment_list'] = comments_list
         
-        self.handler.write(json_encode(topic_obj))
+        self.response_data(topic_obj)

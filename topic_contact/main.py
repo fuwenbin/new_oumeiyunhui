@@ -78,7 +78,7 @@ def main():
     conn = initConnectToMysql(*mysql_config)
     from db.redisclient import  RedisReading
     thread = RedisReading(*(redis_config+(conn,)))
-    thread.start()
+#    thread.start()
     server = httpserver.HTTPServer(MyApplication(conn,redis_config))
     server.bind(default_config[0])
     server.start(1)

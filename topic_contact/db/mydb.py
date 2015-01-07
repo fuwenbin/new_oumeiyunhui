@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 '''
 Created on 2014-12-31
 
@@ -37,9 +38,11 @@ class MyDB():
     def getPublicTopic(self,startindex=0,offset=None):
         
         sql_str = """select topic_id,publisher_name,content,topic_type,relation_key,
-            DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime 
-            from topic_communicate_info where is_public = 1 order by topic_id desc limit %s,%s"""
-        
+            DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime ,
+            (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = w.topic_id) as tramsmit_sum,
+            (select count(supporter_id) from topic_support_rel where topic_id = w.topic_id) as support_sum,
+            (select count(comment_id) from comment_info where topic_id = w.topic_id) as comment_sum
+            from topic_communicate_info w where is_public = 1 order by topic_id desc limit %s,%s"""
         if offset==None:
             offset = 10
         results = self.conn.query(sql_str,startindex,offset)
@@ -51,54 +54,98 @@ class MyDB():
     
     def getTopicSupportSum(self,topicid):
         
-        sql_str = "select count(support_id) from support_rel where topic_id = %s"%topicid
+        sql_str = "select count(supporter_id) sum from support_rel where topic_id = %s"%topicid
         
-        count = self.conn.execute_rowcount(sql_str)
-        return count
+        entity = self.conn.get(sql_str)
+        return entity.sum
     
     def getTopicCommentSum(self,topicid):
         
-        sql_str = "select count(comment_id) from comment_rel where by_comment_id = %s and by_comment_id=0"%topicid
-        count = self.conn.execute_rowcount(sql_str)
-        return count
+        sql_str = "select count(comment_id) sum from comment_rel where by_comment_id = %s and by_comment_id=0"%topicid
+        entity = self.conn.get(sql_str)
+        return entity.sum
     
     def getTopicTramsmitSum(self,topicid):
-        '''»ñÈ¡×ª·¢ÊıÁ¿'''
-        sql_str = "select count(tramsmit_id) from tramsmit_rel where tramsmit_id = %s"%topicid
-        count = self.conn.execute_rowcount(sql_str)
-        return count
+        '''è·å–è½¬å‘æ•°é‡'''
+        sql_str = "select count(tramsmit_id) sum from tramsmit_rel where tramsmit_id = %s"%topicid
+        entity = self.conn.get(sql_str)
+        return entity.sum
     
     def getTopicOfCommentLevel1(self,topicid):
-        """»ñÈ¡¶ÔÖ¸¶¨Ö÷ÌâµÄÖ±½ÓËùÓĞÆÀÂÛ"""
-        sql_str = "select comment_id ,user_id,topic_id,by_comment_id,content,DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime from comment_info where topic_id =%s and by_comment_id=0"%topicid
+        """è·å–å¯¹æŒ‡å®šä¸»é¢˜çš„ç›´æ¥æ‰€æœ‰è¯„è®º"""
+        sql_str = """select w.comment_id,w.comment_publisherid,(select username from user_info where userid = w.comment_publisherid) as publisher_name,w.topic_id,w.by_comment_id,w.content,
+        DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime, 
+        (select count(supporter_id) from comment_support_rel where topic_id = %s) as support_sum,
+        (select count(comment_id) from comment_info where by_comment_id = w.comment_id) as comment_sum
+        from comment_info w where w.topic_id =%s and w.by_comment_id=0"""%(topicid,topicid)
         return self.conn.query(sql_str)
     
     def getTopicOfCommentLevel2(self,topicid,commentid):
-        """»ñÈ¡¶ÔÖ÷ÌâµÄÆÀÂÛµÄÏà¹Ø2¼¶ÆÀÂÛ"""
-        sql_str = """select comment_id ,user_id,topic_id,by_comment_id,content,DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime from comment_info where topic_id =%s and by_comment_id=%s"""%(topicid,commentid)
+        """è·å–å¯¹ä¸»é¢˜çš„è¯„è®ºçš„ç›¸å…³2çº§è¯„è®º"""
+        sql_str = """select comment_id,comment_publisherid,topic_id,by_comment_id,content,DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime,
+        (select count(supporter_id) from comment_support_rel where topic_id = %s) as support_sum
+        from comment_info where topic_id =%s and by_comment_id=%s"""%(topicid,commentid)
         return self.conn.query(sql_str)
     
     def getcloseoutTopicInfo(self,closeoutid):
-        '''»ñÈ¡Æ½²ÖĞÅÏ¢'''
+        '''è·å–å¹³ä»“ä¿¡æ¯'''
         sql_str = "select closeout_id,out_type,profit_point from closeout_topic where closeout_id = %s"%closeoutid
         return self.conn.get(sql_str)
         
     def getcopyTopicInfo(self,followid):
-        '''»ñÈ¡¸´ÖÆĞÅÏ¢'''
-        sql_str = """select a.follow_id,a.by_follow_id,u1.username,a.be_follow_id,u2.username from follow_topic a left join user_info u1 on
-        a.by_follow_id = u.userid left join user_info u2 on a.be_follow_id = u.userid where a.follow_id = %s
+        '''è·å–å¤åˆ¶ä¿¡æ¯'''
+        sql_str = """select a.follow_id,a.by_follow_id,u1.username byname,a.be_follow_id,u2.username bename 
+        from follow_topic a left join user_info u1 on a.by_follow_id = u.userid 
+        left join user_info u2 on a.be_follow_id = u.userid where a.follow_id = %s
         """%followid
         return self.conn.get(sql_str)
         
     def getcommentInfo(self,commentid):
-        '''»ñÈ¡ÆÀÂÛĞÅÏ¢'''
-        sql_str= '''select comment_id,user_id,topic_id,by_comment_id,content,DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime from comment_info comment_id = %s'''%commentid
+        '''è·å–è¯„è®ºä¿¡æ¯'''
+        sql_str= '''select comment_id,comment_publisherid,topic_id,by_comment_id,
+        content,DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime,
+        (select count(comment_id) from comment_info where by_comment_id = %s) as comment_sum,
+        (select count(supporter_id) from comment_support_rel where topic_id = %s) as support_sum
+        from comment_info comment_id = %s join '''%(commentid,commentid,commentid)
         return self.conn.get(sql_str)
         
         
     def getTopicInfo(self,topicid):
         
-        sql_str = '''select topic_id,publisher_name,content,topic_type,relation_key,ctime from topic_communicate_info where topic_id = %s '''%topicid
+        sql_str = '''select topic_id,publisher_name,content,topic_type,relation_key,
+        DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime, 
+        (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = %s) as tramsmit_sum,
+        (select count(supporter_id) from topic_support_rel where topic_id = %s) as support_sum,
+        (select count(comment_id) from comment_info where topic_id = %s) as comment_sum
+        from topic_communicate_info where topic_id = %s '''%(topicid,topicid,topicid)
         return self.conn.get(sql_str)
         
+    def getfansInfos(self,usercode):
+        sql_str = '''select count(fans_id) sum from fans_rel where fans_id = %s'''%usercode
+        attentionsum = self.conn.get(sql_str)
+        sql_str = '''select count(fans_id) sum from fans_rel where by_attention_id = %s'''%usercode
+        fanssum = self.conn.get(sql_str)
+        return dict(attention_sum = attentionsum.sum,fans_sum=fanssum.sum)
+    
+    def attentionOne(self,usercode,attentionid):
+        sql_str = '''insert into fans_rel(fans_id,by_attention_id) values(%s,%s)'''
+        self.conn.insert(sql_str,usercode,attentionid)
         
+        
+    def commentTopic(self,usercode,topicid,bycommentid,content):
+        sql_str = '''insert into comment_info(comment_publisherid,topic_id,by_comment_id,content,ctime) values(%s,%s,%s,'%s',now())'''
+        self.conn.insert(sql_str)
+        
+    def getTopicIdByCommentId(self,commentid):
+        sql_str = '''select topic_id from comment_info where by_comment_id = %s'''%commentid
+        return self.conn.get(sql_str).topic_id
+    
+    def supportTopic(self,topicid,who):
+        
+        sql_str = """insert into topic_support_rel (supporter_id,topic_id) values(%s,%s)"""
+        self.conn.insert(sql_str,who,topicid)
+        
+    def supportComment(self,topicid,who):
+        sql_str = """insert into comment_support_rel (supporter_id,topic_id) values(%s,%s)"""
+        self.conn.insert(sql_str,who,topicid)
+    
