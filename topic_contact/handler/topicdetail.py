@@ -15,7 +15,9 @@ class TopicDetail(Processor):
         topicid = self.jsonbody['topic_id']
         
         row_entity = self.mydb.getTopicInfo(topicid)
-        
+        if len(row_entity)==0:
+            self.response_fail("could't find the topic by topic Id!!!!")
+            return
         topic_obj = {}
         topic_obj['topicid'] = row_entity.topicid
         topic_obj['publisher_id'] = row_entity.publisher_id
@@ -44,5 +46,4 @@ class TopicDetail(Processor):
                 discuss_list.append(discuss)
             comments_list.append(comment)
         topic_obj['comment_list'] = comments_list
-        
         self.response_data(topic_obj)

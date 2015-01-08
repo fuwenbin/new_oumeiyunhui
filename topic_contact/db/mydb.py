@@ -26,31 +26,37 @@ class MyDB():
     
     def getusername(self,usercode):
         
-        return self.conn.get("select username from user_info where userid = %S"%usercode)
+        return self.conn.get("select username from user_info where userid = %s"%usercode).username
         
     
-    def publishtopic(self,**params):
-        sql_str = """insert into topic_communicate_info(publisher_id,publisher_name,content,topic_type,relaiton_key,ctime,is_public)
-        values(%(publisherid)s,'%(publishername)'s,'%(content)s',%(topictype)s,%(relationkey)s,now(),%(ispublic)s)
-        """
-        self.conn.execute(sql_str,params)
+    def publishtopic(self,params):
+        sql_str = """insert into topic_communicate_info(publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public)
+        values(%(publisherid)s,'%(publishername)s','%(content)s',%(topictype)s,%(relationkey)s,now(),%(ispublic)s)
+        """%(params)
+        self.conn.execute(sql_str)
         
     def getPublicTopic(self,startindex=0,offset=None):
         
-        sql_str = """select topic_id,publisher_name,content,topic_type,relation_key,
+        sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
             DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime ,
-            (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = w.topic_id) as tramsmit_sum,
-            (select count(supporter_id) from topic_support_rel where topic_id = w.topic_id) as support_sum,
-            (select count(comment_id) from comment_info where topic_id = w.topic_id) as comment_sum
-            from topic_communicate_info w where is_public = 1 order by topic_id desc limit %s,%s"""
+            (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = w.topicid) as tramsmit_sum,
+            (select count(supporter_id) from topic_support_rel where topicid = w.topicid) as support_sum,
+            (select count(comment_id) from comment_info where topic_id = w.topicid) as comment_sum
+            from topic_communicate_info w where is_public = 1 and state = 1 order by topicid desc limit %s,%s"""
         if offset==None:
             offset = 10
         results = self.conn.query(sql_str,startindex,offset)
         return results
     
-    def getRelationInfo(self,usercode):
-        
-        pass
+    def getRelationInfo(self,usercode,startindex,offset):
+        sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
+            DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime ,
+            (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = w.topicid) as tramsmit_sum,
+            (select count(supporter_id) from topic_support_rel where topicid = w.topicid) as support_sum,
+            (select count(comment_id) from comment_info where topic_id = w.topicid) as comment_sum
+            from topic_communicate_info w where publisher_id = %s and state = 1 order by topicid desc limit %s,%s
+        """
+        return self.conn.query(sql_str,usercode,startindex,offset)
     
     def getTopicSupportSum(self,topicid):
         
@@ -95,8 +101,8 @@ class MyDB():
     def getcopyTopicInfo(self,followid):
         '''获取复制信息'''
         sql_str = """select a.follow_id,a.by_follow_id,u1.username byname,a.be_follow_id,u2.username bename 
-        from follow_topic a left join user_info u1 on a.by_follow_id = u.userid 
-        left join user_info u2 on a.be_follow_id = u.userid where a.follow_id = %s
+        from follow_topic a left join user_info u1 on a.by_follow_id = u1.userid 
+        left join user_info u2 on a.be_follow_id = u2.userid where a.follow_id = %s
         """%followid
         return self.conn.get(sql_str)
         
@@ -117,7 +123,7 @@ class MyDB():
         (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = %s) as tramsmit_sum,
         (select count(supporter_id) from topic_support_rel where topic_id = %s) as support_sum,
         (select count(comment_id) from comment_info where topic_id = %s) as comment_sum
-        from topic_communicate_info where topic_id = %s '''%(topicid,topicid,topicid)
+        from topic_communicate_info where topic_id = %s and state = 1'''%(topicid,topicid,topicid)
         return self.conn.get(sql_str)
         
     def getfansInfos(self,usercode):
@@ -128,12 +134,17 @@ class MyDB():
         return dict(attention_sum = attentionsum.sum,fans_sum=fanssum.sum)
     
     def attentionOne(self,usercode,attentionid):
-        sql_str = '''insert into fans_rel(fans_id,by_attention_id) values(%s,%s)'''
-        self.conn.insert(sql_str,usercode,attentionid)
+        try:
+            sql_str = '''insert into fans_rel(fans_id,by_attention_id,ctime) values(%s,%s,now())'''
+            self.conn.insert(sql_str,usercode,attentionid)
+        except Exception:
+            return 1
+        return 0
         
         
     def commentTopic(self,usercode,topicid,bycommentid,content):
-        sql_str = '''insert into comment_info(comment_publisherid,topic_id,by_comment_id,content,ctime) values(%s,%s,%s,'%s',now())'''
+        sql_str = '''insert into comment_info(comment_publisherid,topic_id,by_comment_id,content,ctime) values(%s,%s,%s,'%s',now())'''%(usercode,topicid,bycommentid,content)
+        print sql_str
         self.conn.insert(sql_str)
         
     def getTopicIdByCommentId(self,commentid):
@@ -142,10 +153,21 @@ class MyDB():
     
     def supportTopic(self,topicid,who):
         
-        sql_str = """insert into topic_support_rel (supporter_id,topic_id) values(%s,%s)"""
+        sql_str = """insert into topic_support_rel (supporter_id,topic_id,ctime) values(%s,%s,now())"""
         self.conn.insert(sql_str,who,topicid)
         
     def supportComment(self,topicid,who):
-        sql_str = """insert into comment_support_rel (supporter_id,topic_id) values(%s,%s)"""
+        sql_str = """insert into comment_support_rel (supporter_id,topic_id,ctime) values(%s,%s,now())"""
         self.conn.insert(sql_str,who,topicid)
     
+    def deletetopic(self,usercode,topicid):
+        sql_str = "update table topic_communicate_info set state = 0 where publisher_id = %s and topicid = %s"%(usercode,topicid)
+        return self.conn.update(sql_str)
+        
+    
+    def deletecomment(self,usercode,commentid):
+        
+        sql_str = '''update table comment_info set state = 0 where comment_publisherid = %s and comment_id = %s'''%(usercode,commentid)
+        return self.conn.update(sql_str)        
+        
+        

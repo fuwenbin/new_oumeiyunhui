@@ -10,6 +10,7 @@ from processor import Processor
 class PublishTopic(Processor):
     '''发表话题'''
     def dowork(self):
+        print "doworking start"
         publisher_id = self.jsonbody['publisher_id']
         content = self.jsonbody['content']
         data = {}
@@ -20,4 +21,4 @@ class PublishTopic(Processor):
         data['publishername'] = self.mydb.getusername(publisher_id)
         data['ispublic']  = 0
         self.mydb.publishtopic(data)
-        
+        self.response_success()

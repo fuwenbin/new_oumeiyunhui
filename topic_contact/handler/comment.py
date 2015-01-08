@@ -20,3 +20,5 @@ class Comment(Processor):
             bycommentid = topicid
             topicid = self.mydb.getTopicIdByCommentId(bycommentid)
             self.mydb.commentTopic(usercode, topicid, bycommentid, content)
+        self.response_success()
+        

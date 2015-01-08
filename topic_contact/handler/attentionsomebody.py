@@ -13,4 +13,5 @@ class AttentionSomeBody(Processor):
         usercode = self.jsonbody['usercode']
         byattentionid = self.jsonbody['by_attention_id']
         self.mydb.attentionOne(usercode, byattentionid)
+        self.response_success()
         

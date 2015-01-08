@@ -29,8 +29,8 @@ class HotInvester(Processor):
                 row['title'] = row.publisher_name + " " + Topic_Constants.closeout_ch + " " + closeoutinfo.out_type
                 row['content'] = closeoutinfo
             elif topictype == 2: # copy 
-                row['title'] = row.publisher_name + "　" + Topic_Constants.copy_ing + " " + row.byname
                 copyinfo = self.mydb.getcopyTopicInfo(row['relation_key'])
+                row['title'] = row.publisher_name + "　" + Topic_Constants.copy_ing + " " + copyinfo.byname
                 copyinfo['be_follow_sum'] = row.content
                 row['content'] = copyinfo
             elif topictype == 3:  # discuss 

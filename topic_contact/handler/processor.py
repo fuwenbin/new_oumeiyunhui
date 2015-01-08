@@ -12,9 +12,9 @@ class Processor():
         self.handler = requesthandler
         if requesthandler.request.body is not '':
             jsonbody = json_decode(requesthandler.request.body)
-        self.redis = requesthandler.applicatoin.redis
-        self.jsonbody= jsonbody
-        self.mydb = MyDB(self.application.conn)
+#        self.redis = requesthandler.applicatoin.redis
+            self.jsonbody= jsonbody
+        self.mydb = MyDB(requesthandler.application.conn)
             
     def response_data(self,data):
         print "jsondata is :%s"%data
@@ -23,3 +23,17 @@ class Processor():
         
     def dowork(self):
         raise NotImplementedError
+    
+    def response_success(self):
+        data=dict(
+                  statecode=1,
+                  statemessage = 'successful !!!'
+                  )
+        self.response_data(data)
+        
+    def response_fail(self,message):
+        data=dict(
+                  statecode = 0,
+                  statemessage = message
+                  )
+        self.response_data(data)

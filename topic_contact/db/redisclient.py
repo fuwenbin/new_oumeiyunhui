@@ -1,3 +1,4 @@
+# -*- coding:utf8 -*-
 '''
 Created on 2014-12-31
 
@@ -8,6 +9,7 @@ import redis
 import threading
 import time
 import json
+import re
 stop_server = False
 class RedisReading(threading.Thread):
     '''connect redis to get data !!!'''
@@ -28,20 +30,36 @@ class RedisReading(threading.Thread):
         self.conn.insert(sql_insert)
         self.redis.lrem('social:openaccount', jsondata)
     def handleTracdesdata(self, jsondata):
+        
+        """
+        1000*volume / leveage =  保证金
+        symbol = 'USDCAD25'  
+        profit+storage = 盈利
+                    盈利率 =盈利/保证金
+        """
         if jsondata is None:
             print "there are no tracde data !!!!"
             return
-        sql_insert = "insert into  "
         map_data = json.loads(jsondata)
         symbol = map_data['symbol']
         closetime = map_data['close_time']
         profit = map_data['profit']
         storage = map_data['storage']
+        volume = map_data['volume']
+        publisherid = 0
+        leveage = None
+        if re.search(symbol,'_'):
+            leveage = 100
+        else:
+            leveage = re.findall(r'\d+',symbol)
+            symbol = re.sub(r'\d+','',symbol)
         
-        print jsondata
-#        self.conn(sql_insert,*map_data.values())
+        rate = (profit+storage)/(1000*volume/leveage)
         
-        
+        sql_str = "insert into closeout_topic(out_type,profit_point) values(%s,%s)"%(symbol,rate)
+        rowid = self.conn.insert(sql_str)
+        sql_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,now(),%s)"
+        self.conn.insert(sql_str,publisherid,'','',1,rowid,0)
     
     def handleCopydata(self, jsondata):
         if jsondata is None:
@@ -56,9 +74,11 @@ class RedisReading(threading.Thread):
             sm = self.conn.get(sql_str).sum
             sql_str = "insert into follow_topic (follow_id,by_follow_id) values(%s,%s)"%(to,fromcopy)
             follow_id = self.conn.insert(sql_str)
+            is_public = 0
             if (sm+1)%50==0:
-                slq_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,now(),%s)"
-                self.conn.insert(slq_str,to,'',sm+1,2,follow_id,1)
+                is_public = 1
+            slq_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,now(),%s)"
+            self.conn.insert(slq_str,to,'',sm+1,2,follow_id,is_public)
     def run(self):
         
         while True:

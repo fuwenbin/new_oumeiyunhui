@@ -13,6 +13,7 @@ from getrelationinfos import GetRelationInfos
 from publishtopic import PublishTopic
 from topicdetail import TopicDetail
 from support import Support
+from utils.errors import Errors
 class MainHandler(tornado.web.RequestHandler):
     
     '''this class will handle all request .  it will payout request to the specific handler'''
@@ -23,6 +24,8 @@ class MainHandler(tornado.web.RequestHandler):
         self.finish()
     @tornado.web.asynchronous
     def post(self, command):
+        print "command is : %s"%command
+        
         handler = None
         if command == 'hotinvester':
             handler = HotInvester(self)
@@ -40,9 +43,13 @@ class MainHandler(tornado.web.RequestHandler):
             handler = Comment(self)
         elif command == 'doattention':
             handler = AttentionSomeBody(self)
-        
-        if not handler :
-            handler.dowork()
-#        self.write("hello post method ! server is runging")
+        else:
+            raise Exception("404 error!")
+        if handler :
+            try:
+                handler.dowork()
+            except:
+                Errors.TraceErrorHandler(self)
+                self.write("")##返回空字符串,代表服务器报错
         print "request post"
         self.finish()
