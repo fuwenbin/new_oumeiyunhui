@@ -12,6 +12,9 @@ class AttentionSomeBody(Processor):
     def dowork(self):
         usercode = self.jsonbody['usercode']
         byattentionid = self.jsonbody['by_attention_id']
-        self.mydb.attentionOne(usercode, byattentionid)
-        self.response_success()
+        statecode = self.mydb.attentionOne(usercode, byattentionid)
+        if statecode ==1:
+            self.response_fail("重复关注")
+        else:
+            self.response_success()
         

@@ -27,6 +27,7 @@ class MyApplication(tornado.web.Application):
         settings = dict(gzip= True,
                        debug = False)
         self.conn = conn
+        self.conn.execute('SET time_zone="+8:00"')
         tornado.web.Application.__init__(self,handlers=handlers,**settings)
         
         end = time.time()

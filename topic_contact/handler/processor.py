@@ -17,23 +17,17 @@ class Processor():
         self.mydb = MyDB(requesthandler.application.conn)
             
     def response_data(self,data):
-        print "jsondata is :%s"%data
-        logging.debug("jsondata is %s",data)
+        print "jsondata is :%s"%json_encode(data)
+        logging.debug("jsondata is %s",json_encode(data))
         self.handler.write(json_encode(data))
         
     def dowork(self):
         raise NotImplementedError
     
     def response_success(self):
-        data=dict(
-                  statecode=1,
-                  statemessage = 'successful !!!'
-                  )
+        data={"statecode":1,"statemessage":'successful!!!'}
         self.response_data(data)
         
     def response_fail(self,message):
-        data=dict(
-                  statecode = 0,
-                  statemessage = message
-                  )
+        data={"statecode":0,"statemessage":message}
         self.response_data(data)

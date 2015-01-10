@@ -32,8 +32,8 @@ class GetRelationInfos(Processor):
                 row['title'] = row.publisher_name + "　" + Topic_Constants.copy_ing + " " + copyinfo.byname
                 copyinfo['be_follow_sum'] = row.content
                 row['content'] = copyinfo
-            elif topictype == 3:  # discuss 
-                commentinfo = self.mydb.getcommentInfo(row['relation_key'])
-                row['content'] = commentinfo
+#            elif topictype == 3:  # discuss 
+#                commentinfo = self.mydb.getcommentInfo(row['relation_key'])
+#                row['content'] = commentinfo
             topic_data.append(row)
         self.response_data(topic_data)

@@ -13,9 +13,8 @@ class TopicDetail(Processor):
     def dowork(self):
         
         topicid = self.jsonbody['topic_id']
-        
         row_entity = self.mydb.getTopicInfo(topicid)
-        if len(row_entity)==0:
+        if not row_entity:
             self.response_fail("could't find the topic by topic Id!!!!")
             return
         topic_obj = {}
@@ -36,7 +35,7 @@ class TopicDetail(Processor):
         topic_obj['tramsmit_sum'] = row_entity.tramsmit_sum
         topic_obj['topic_type'] = row_entity.topic_type
         comments_list = []
-        level1_comments = self.mydb.getTopicOfCommentLevel1(row_entity.topic_id)
+        level1_comments = self.mydb.getTopicOfCommentLevel1(row_entity.topicid)
         for comment in level1_comments:
             comment['ptime'] = time.mktime(time.strptime(comment['ctime'], "%Y-%m-%d %H:%M:%S")) - time.time()
             discuss_list = []
