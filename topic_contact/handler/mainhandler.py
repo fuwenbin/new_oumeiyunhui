@@ -14,6 +14,7 @@ from publishtopic import PublishTopic
 from topicdetail import TopicDetail
 from support import Support
 from utils.errors import Errors
+from tornado.web import HTTPError
 class MainHandler(tornado.web.RequestHandler):
     
     '''this class will handle all request .  it will payout request to the specific handler'''
@@ -44,7 +45,7 @@ class MainHandler(tornado.web.RequestHandler):
         elif command == 'doattention':
             handler = AttentionSomeBody(self)
         else:
-            raise Exception("404 error!")
+            raise HTTPError(status_code=404)
         if handler :
             try:
                 handler.dowork()
