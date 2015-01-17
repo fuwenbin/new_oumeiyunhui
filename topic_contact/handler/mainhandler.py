@@ -10,6 +10,7 @@ from attentionsomebody import AttentionSomeBody
 from comment import Comment
 from getattionandfans import GetAttentionAndFansInfo
 from getrelationinfos import GetRelationInfos
+from getinfomation import GetInfomation
 from publishtopic import PublishTopic
 from topicdetail import TopicDetail
 from support import Support
@@ -44,6 +45,8 @@ class MainHandler(tornado.web.RequestHandler):
             handler = Comment(self)
         elif command == 'doattention':
             handler = AttentionSomeBody(self)
+        elif command == 'geinformation':
+            handler = GetInfomation(self)
         else:
             raise HTTPError(status_code=404)
         if handler :
