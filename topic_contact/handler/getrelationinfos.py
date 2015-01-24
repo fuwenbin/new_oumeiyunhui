@@ -11,9 +11,9 @@ import time
 class GetRelationInfos(Processor):
     '''获取与自己相关的投资信息'''
     def dowork(self):
-        usercode = self.jsonbody['usercode']
-        startindex = self.jsonbody['startindex']
-        offset = self.jsonbody['offset']
+        usercode = self.handler.get_argument('usercode',0)
+        startindex = self.handler.get_argument('startindex',0)
+        offset = self.handler.get_argument('offset',0)
         rows = self.mydb.getRelationInfo(usercode,startindex,offset)
         topic_data = []
         for row in rows:
@@ -36,4 +36,4 @@ class GetRelationInfos(Processor):
 #                commentinfo = self.mydb.getcommentInfo(row['relation_key'])
 #                row['content'] = commentinfo
             topic_data.append(row)
-        self.response_data(topic_data)
+        self.response_success(topic_data)

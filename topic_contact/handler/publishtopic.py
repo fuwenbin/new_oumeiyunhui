@@ -13,9 +13,9 @@ class PublishTopic(Processor):
     '''发表话题'''
     def dowork(self):
         print "doworking start"
-        publisher_id = self.jsonbody['publisher_id']
-        content = self.jsonbody['content']
-        bytramsmitid = self.jsonbody['bytramsmitid']
+        publisher_id = self.handler.get_argument('publisher_id',0)
+        content = self.handler.get_argument('content',"")
+        bytramsmitid = int(self.handler.get_argument('bytramsmitid',0))
         data = {}
         data['publisherid'] = publisher_id
         data['content'] = content
@@ -33,5 +33,12 @@ class PublishTopic(Processor):
                 self.mydb.mapconentkey(atstr, 0, insertid, ctime)
         
         if bytramsmitid is not 0:
-            self.mydb.maptramsmit(bytramsmitid, publisher_id)
+            try:
+                self.mydb.maptramsmit(bytramsmitid, publisher_id)
+            except:
+                self.response_fail("重复转发!!")
+                return
+        
+        
+        
         self.response_success()

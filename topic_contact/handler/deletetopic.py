@@ -10,9 +10,9 @@ from processor import Processor
 class DeleteTopic(Processor):
     
     def dowork(self):
-        usercode = self.jsonbody['usercode']
-        typecode = self.jsonbody['type']
-        topicid = self.jsonbody['topicid']
+        usercode = self.handler.get_argument('usercode',0)
+        typecode = int(self.handler.get_argument('type',0))
+        topicid = self.handler.get_argument('topicid',0)
         rowcount = 0
         if typecode == 0:
             rowcount = self.mydb.deletetopic(usercode, topicid)

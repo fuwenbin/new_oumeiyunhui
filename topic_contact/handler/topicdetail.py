@@ -12,7 +12,7 @@ class TopicDetail(Processor):
     '''获取话题详情'''
     def dowork(self):
         
-        topicid = self.jsonbody['topic_id']
+        topicid = self.handler.get_argument('topic_id',0)
         row_entity = self.mydb.getTopicInfo(topicid)
         if not row_entity:
             self.response_fail("could't find the topic by topic Id!!!!")
@@ -29,7 +29,7 @@ class TopicDetail(Processor):
             closeoutinfo = self.mydb.getcloseoutTopicInfo(row_entity.relation_key)
             topic_obj['title'] = row_entity.publisher_name + " " + Topic_Constants.closeout_ch + " " + closeoutinfo.out_type
             topic_obj['content'] = closeoutinfo
-        topic_obj['ptime'] = time.mktime(time.strptime(row_entity['ctime'], "%Y-%m-%d %H:%M:%S")) - time.time()
+        topic_obj['ptime'] = int(time.time()) - int(time.mktime(time.strptime(row_entity['ctime'], "%Y-%m-%d %H:%M:%S"))) 
         topic_obj['support_sum'] = row_entity.support_sum
         topic_obj['comment_sum'] = row_entity.comment_sum
         topic_obj['tramsmit_sum'] = row_entity.tramsmit_sum
@@ -45,4 +45,4 @@ class TopicDetail(Processor):
                 discuss_list.append(discuss)
             comments_list.append(comment)
         topic_obj['comment_list'] = comments_list
-        self.response_data(topic_obj)
+        self.response_success(topic_obj)

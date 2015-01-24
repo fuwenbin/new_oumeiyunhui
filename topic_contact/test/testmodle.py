@@ -13,15 +13,25 @@ from tornado.escape import json_decode
 def commucateModelTest(uri,param,hosts ="127.0.0.1:5002"):
     headers = {"Content-type":"application/x-www-form-urlencoded","Accept":"text/plain"}
     conn = httplib.HTTPConnection(hosts)
-    data = json.dumps(param,encoding = 'utf-8')
-    conn.request("POST","/communicate/api/"+uri,data,headers)
+    data = urllib.urlencode(param)
+#    data = json.dumps(param,encoding = 'utf-8')
+    
+    conn.request("GET","/communicate/api/"+uri+"?startindex=0&offset=10",data,headers)
     response = conn.getresponse()
     if response.status == 200:
         print "command:%s"%uri
         print "request:%s"%data
         rdata = response.read()
         print "response:%s"%rdata 
+
+def trasformDict(dictobj):
     
+    paramstr = '';
+    for k,v in dictobj.items():
+        paramstr = paramstr+"="+v+"&";
+    paramstr = paramstr[:-1]
+    return urllib.urlencode(paramstr)
+
 def testpusblishtopic():
     "发表主题"
     requestJsondata = {
@@ -85,11 +95,11 @@ def testdofans():
     commucateModelTest('doattention',requestJsondata)
     
 if __name__== '__main__':
-    testpusblishtopic()
-    testgetfansinfomation()
-    testdocomment()
-    testdofans()
-    testdotopicsupport()
+#    testpusblishtopic()
+#    testgetfansinfomation()
+#    testdocomment()
+#    testdofans()
+#    testdotopicsupport()
     testgethotinvesterinfo()
-    testtopicdetail()
-    testgetrelationinfos()
+#    testtopicdetail()
+#    testgetrelationinfos()

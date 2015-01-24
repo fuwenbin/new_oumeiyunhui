@@ -26,22 +26,30 @@ class MyDB():
     
     def getusername(self,usercode):
         
-        return self.conn.get("select username from user_info where userid = %s"%usercode).username
+        return self.conn.get("select username from user_info where userid = %s",usercode).username
         
     
     def publishtopic(self,params):
         sql_str = """insert into topic_communicate_info(publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public)
         values(%(publisherid)s,'%(publishername)s','%(content)s',%(topictype)s,%(relationkey)s,'%(ctime)s',%(ispublic)s)
-        """%(params)
-        return self.conn.insert(sql_str)
+        """
+        return self.conn.insert(sql_str,
+                                publisherid = params['publisherid'],
+                                publishername = params['publishername'],
+                                content = params['content'],
+                                topictype = params['topictype'],
+                                relationkey = params['relationkey'],
+                                ctime = params['ctime'],
+                                ispublic = params['ispublic']
+                                )
         
     def getPublicTopic(self,startindex=0,offset=None):
         
         sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
             DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime ,
-            (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = w.topicid) as tramsmit_sum,
-            (select count(supporter_id) from topic_support_rel where topicid = w.topicid) as support_sum,
-            (select count(comment_id) from comment_info where topic_id = w.topicid) as comment_sum
+            (select count(by_topicid) from tramsmit_rel where by_topicid = w.topicid) as tramsmit_sum,
+            (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
+            (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
             from topic_communicate_info w where is_public = 1 and state = 1 order by topicid desc limit %s,%s"""
         if offset==None:
             offset = 10
@@ -51,86 +59,91 @@ class MyDB():
     def getRelationInfo(self,usercode,startindex,offset):
         sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
             DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime ,
-            (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = w.topicid) as tramsmit_sum,
+            (select count(by_topicid) from tramsmit_rel where by_topicid = w.topicid) as tramsmit_sum,
             (select count(supporter_id) from topic_support_rel where topicid = w.topicid) as support_sum,
-            (select count(comment_id) from comment_info where topic_id = w.topicid) as comment_sum
+            (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
             from topic_communicate_info w where publisher_id = %s and state = 1 order by topicid desc limit %s,%s
         """
         return self.conn.query(sql_str,usercode,startindex,offset)
     
     def getTopicSupportSum(self,topicid):
         
-        sql_str = "select count(supporter_id) sum from support_rel where topic_id = %s"%topicid
+        sql_str = "select count(supporter_id) sum from support_rel where by_topicid = %s"
         
-        entity = self.conn.get(sql_str)
+        entity = self.conn.get(sql_str,topicid)
         return entity.sum
     
     def getTopicCommentSum(self,topicid):
-        
-        sql_str = "select count(comment_id) sum from comment_rel where by_comment_id = %s and by_comment_id=0"%topicid
-        entity = self.conn.get(sql_str)
+        '''获取被评论的topic的评论数'''
+        sql_str = "select count(comment_id) sum from comment_rel where by_topicid = %s and by_comment_id=0"
+        entity = self.conn.get(sql_str,topicid)
         return entity.sum
     
     def getTopicTramsmitSum(self,topicid):
         '''获取转发数量'''
-        sql_str = "select count(tramsmit_id) sum from tramsmit_rel where tramsmit_id = %s"%topicid
-        entity = self.conn.get(sql_str)
+        sql_str = "select count(by_topicid) sum from tramsmit_rel where by_topicid = %s"
+        entity = self.conn.get(sql_str,topicid)
         return entity.sum
     
     def getTopicOfCommentLevel1(self,topicid):
         """获取对指定主题的直接所有评论"""
-        sql_str = """select w.comment_id,w.comment_publisherid,(select username from user_info where userid = w.comment_publisherid) as publisher_name,w.topic_id,w.by_comment_id,w.content,
-        DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime, 
-        (select count(supporter_id) from comment_support_rel where topic_id = w.topic_id) as support_sum,
+        sql_str = """select w.comment_id,w.comment_publisherid,(select username 
+        from user_info where userid = w.comment_publisherid) as publisher_name,
+        w.by_topicid,w.by_comment_id,w.content,
+        DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime, 
+        (select count(supporter_id) from comment_support_rel where by_topicid = w.by_topicid) as support_sum,
         (select count(comment_id) from comment_info where by_comment_id = w.comment_id) as comment_sum
-        from comment_info w where w.topic_id =%s and w.by_comment_id=0"""%(topicid)
-        return self.conn.query(sql_str)
+        from comment_info w where w.by_topicid =%s and w.by_comment_id=0"""
+        return self.conn.query(sql_str,topicid)
     
     def getTopicOfCommentLevel2(self,topicid,commentid):
         """获取对主题的评论的相关2级评论"""
-        sql_str = """select comment_id,comment_publisherid,topic_id,by_comment_id,content,DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime,
-        (select count(supporter_id) from comment_support_rel where topic_id = %s) as support_sum
-        from comment_info where topic_id =%s and by_comment_id=%s"""%(topicid,topicid,commentid)
-        return self.conn.query(sql_str)
+        sql_str = """select comment_id,comment_publisherid,by_topicid,by_comment_id,content,
+        DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime,
+        (select count(supporter_id) from comment_support_rel where by_topicid = %s) as support_sum
+        from comment_info where by_topicid =%s and by_comment_id=%s"""
+        return self.conn.query(sql_str,topicid,topicid,commentid)
     
     def getcloseoutTopicInfo(self,closeoutid):
         '''获取平仓信息'''
-        sql_str = "select closeout_id,out_type,profit_point from closeout_topic where closeout_id = %s"%closeoutid
-        return self.conn.get(sql_str)
+        sql_str = """select c.usercode,u.username,c.closeout_id,c.out_type,c.profit_point 
+        from closeout_topic c left join user_info u on c.usercode = u.userid
+        where c.closeout_id = %s"""
+        return self.conn.get(sql_str,closeoutid)
         
     def getcopyTopicInfo(self,followid):
         '''获取复制信息'''
         sql_str = """select a.follow_id,a.by_follow_id,u1.username byname,a.be_follow_id,u2.username bename 
         from follow_topic a left join user_info u1 on a.by_follow_id = u1.userid 
         left join user_info u2 on a.be_follow_id = u2.userid where a.follow_id = %s
-        """%followid
-        return self.conn.get(sql_str)
+        """
+        return self.conn.get(sql_str,followid)
         
     def getcommentInfo(self,commentid):
         '''获取评论信息'''
-        sql_str= '''select comment_id,comment_publisherid,topic_id,by_comment_id,
+        sql_str= '''select comment_id,comment_publisherid,by_topicid,by_comment_id,
         content,DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime,
         (select count(comment_id) from comment_info where by_comment_id = %s) as comment_sum,
-        (select count(supporter_id) from comment_support_rel where topic_id = %s) as support_sum
-        from comment_info comment_id = %s join '''%(commentid,commentid,commentid)
-        return self.conn.get(sql_str)
+        (select count(supporter_id) from comment_support_rel where by_topicid = %s) as support_sum
+        from comment_info comment_id = %s join '''
+        return self.conn.get(sql_str,commentid,commentid,commentid)
         
         
     def getTopicInfo(self,topicid):
         
         sql_str = '''select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
         DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime, 
-        (select count(tramsmit_id) from tramsmit_rel where tramsmit_id = %s) as tramsmit_sum,
-        (select count(supporter_id) from topic_support_rel where topic_id = %s) as support_sum,
-        (select count(comment_id) from comment_info where topic_id = %s) as comment_sum
-        from topic_communicate_info where topicid = %s and state = 1'''%(topicid,topicid,topicid,topicid)
-        return self.conn.get(sql_str)
+        (select count(by_topicid) from tramsmit_rel where by_topicid = %s) as tramsmit_sum,
+        (select count(supporter_id) from topic_support_rel where by_topicid = %s) as support_sum,
+        (select count(comment_id) from comment_info where by_topicid = %s) as comment_sum
+        from topic_communicate_info where topicid = %s and state = 1'''
+        return self.conn.get(sql_str,topicid,topicid,topicid,topicid)
         
     def getfansInfos(self,usercode):
-        sql_str = '''select count(fans_id) sum from fans_rel where fans_id = %s'''%usercode
-        attentionsum = self.conn.get(sql_str)
-        sql_str = '''select count(fans_id) sum from fans_rel where by_attention_id = %s'''%usercode
-        fanssum = self.conn.get(sql_str)
+        sql_str = '''select count(fans_id) sum from fans_rel where fans_id = %s'''
+        attentionsum = self.conn.get(sql_str,usercode)
+        sql_str = '''select count(fans_id) sum from fans_rel where by_attention_id = %s'''
+        fanssum = self.conn.get(sql_str,usercode)
         return dict(attention_sum = attentionsum.sum,fans_sum=fanssum.sum)
     
     def attentionOne(self,usercode,attentionid):
@@ -143,43 +156,43 @@ class MyDB():
         
         
     def commentTopic(self,usercode,topicid,bycommentid,content,ctime):
-        sql_str = '''insert into comment_info(comment_publisherid,topic_id,by_comment_id,content,ctime) values(%s,%s,%s,'%s','%s')'''%(usercode,topicid,bycommentid,content,ctime)
+        sql_str = '''insert into comment_info(comment_publisherid,by_topicid,by_comment_id,content,ctime) values(%s,%s,%s,'%s','%s')'''%(usercode,topicid,bycommentid,content,ctime)
         print sql_str
         return self.conn.insert(sql_str)
         
     def getTopicIdByCommentId(self,commentid):
-        sql_str = '''select topic_id from comment_info where by_comment_id = %s'''%commentid
+        sql_str = '''select by_topicid from comment_info where by_comment_id = %s'''
         topicid =0
         try:
-            topicid = self.conn.get(sql_str).topic_id
+            topicid = self.conn.get(sql_str,commentid).by_topicid
         except:
             return 0
         return topicid
     
     def supportTopic(self,topicid,who):
         
-        sql_str = """insert into topic_support_rel (supporter_id,topic_id,ctime) values(%s,%s,now())"""
+        sql_str = """insert into topic_support_rel (supporter_id,by_topicid,ctime) values(%s,%s,now())"""
         self.conn.insert(sql_str,who,topicid)
         
     def supportComment(self,topicid,who):
-        sql_str = """insert into comment_support_rel (supporter_id,topic_id,ctime) values(%s,%s,now())"""
+        sql_str = """insert into comment_support_rel (supporter_id,by_topicid,ctime) values(%s,%s,now())"""
         self.conn.insert(sql_str,who,topicid)
     
     def deletetopic(self,usercode,topicid):
-        sql_str = "update table topic_communicate_info set state = 0 where publisher_id = %s and topicid = %s"%(usercode,topicid)
-        return self.conn.update(sql_str)
+        sql_str = "update table topic_communicate_info set state = 0 where publisher_id = %s and topicid = %s"
+        return self.conn.update(sql_str,usercode,topicid)
         
     
     def deletecomment(self,usercode,commentid):
         
-        sql_str = '''update table comment_info set state = 0 where comment_publisherid = %s and comment_id = %s'''%(usercode,commentid)
-        return self.conn.update(sql_str)        
+        sql_str = '''update table comment_info set state = 0 where comment_publisherid = %s and comment_id = %s'''
+        return self.conn.update(sql_str,usercode,commentid)        
     
     def mapconentkey(self,atstr,typekey,relation_key,ctime):
-        sql_str = '''insert into atname_rel(atstr,type,relation_key,ctime) values('%s',%s,%s,%s)'''%(atstr,typekey,relation_key,ctime)
-        return self.conn.insert(sql_str)
+        sql_str = '''insert into atname_rel(atstr,type,relation_key,ctime) values('%s',%s,%s,%s)'''
+        return self.conn.insert(sql_str,atstr,typekey,relation_key,ctime)
         
     def maptramsmit(self,bytramsmittopicid,who):
-        sql_str = '''insert into tramsmit_rel (tramsmit_id,who,ctime) values(%s,%s,now())'''
+        sql_str = '''insert into tramsmit_rel (by_topicid,who,ctime) values(%s,%s,now())'''
         return self.conn.insert(sql_str,bytramsmittopicid,who)
         

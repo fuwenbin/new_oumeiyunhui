@@ -11,19 +11,21 @@ import time
 class Comment(Processor):
     """评论话题或者  评论"""
     def dowork(self):
-        type_d = self.jsonbody['type']
-        usercode = self.jsonbody['usercode']
-        content = self.jsonbody['content']
-        topicid = self.jsonbody['topicid']
+        type_d = self.handler.get_argument('type',1000)
+        usercode = self.handler.get_argument('usercode',0)
+        content = self.handler.get_argument('content',"")
+        topicid = self.handler.get_argument('topicid',0)
+        print "comment arguments is : %s , %s, %s ,%s"%(type_d,usercode,content,topicid)
+        
         insertid = 0
         ctime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time())) 
-        if type_d ==0:
+        if int(type_d) ==0:
             topicinfo = self.mydb.getTopicInfo(topicid)
             if not topicinfo:
                 self.response_fail("cant find the topic by topicid")
                 return
             insertid=self.mydb.commentTopic(usercode, topicid, 0, content,ctime)
-        elif type_d ==1:
+        elif int(type_d) ==1:
             bycommentid = topicid
             topicid = self.mydb.getTopicIdByCommentId(bycommentid)
             if not topicid:

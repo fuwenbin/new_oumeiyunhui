@@ -16,22 +16,23 @@ from handler.mainhandler import MainHandler
 class MyApplication(tornado.web.Application):
     """application init here"""
     
-    def __init__(self,conn,redisconfig):
+    def __init__(self,conn,defaultconfig):
         
         start = time.time()
         
         handlers = [
-                    (r"/communicate/api/([a-z]+)",MainHandler)
+                    (r"/communicate/api/([a-z_]+)",MainHandler)
                     ]
         
         settings = dict(gzip= True,
-                       debug = False)
+                       debug = False,
+                       xsrf_cookies=False)
         self.conn = conn
         self.conn.execute('SET time_zone="+8:00"')
         tornado.web.Application.__init__(self,handlers=handlers,**settings)
-        
+#        self.add_handlers("http://192.168.1.59:5002", handlers)
         end = time.time()
-        
+        self.config = defaultconfig
         logging.info("...starting server for time:"+str((end-start)*1000)+u"毫秒")
         print("...starting server for time:"+str((end-start)*1000)+u"毫秒")
 def initConfigParams():
@@ -40,6 +41,7 @@ def initConfigParams():
     parser.read('serverconfig.cfg')
     server_port = parser.get('default','server_port')
     log_path = parser.get('default','log_path')
+    access_origin = parser.get('default',"access_control_request_origin")
     
     mysql_address = parser.get('mysql','host')
     mysql_user = parser.get('mysql','user')
@@ -50,7 +52,7 @@ def initConfigParams():
     redis_db = parser.get('redis','db')
     redis_pwd = parser.get('redis','pwd')
     
-    return (server_port,log_path),(mysql_address,mysql_user,mysql_pwd),(redis_host,redis_port,redis_db,redis_pwd)
+    return (server_port,log_path,access_origin),(mysql_address,mysql_user,mysql_pwd),(redis_host,redis_port,redis_db,redis_pwd)
 
 def initConnectToMysql(hostaddress,user,password):
     import torndb
@@ -80,7 +82,7 @@ def main():
     from db.redisclient import  RedisReading
     thread = RedisReading(*(redis_config+(conn,)))
 #    thread.start()
-    server = httpserver.HTTPServer(MyApplication(conn,redis_config))
+    server = httpserver.HTTPServer(MyApplication(conn,default_config))
     server.bind(default_config[0])
     server.start(1)
     tornado.ioloop.IOLoop.instance().start()

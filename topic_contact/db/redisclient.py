@@ -38,7 +38,7 @@ class RedisReading(threading.Thread):
                     盈利率 =盈利/保证金
         """
         if jsondata is None:
-            print "there are no tracde data !!!!"
+            print "there are no closeout data !!!!"
             return
         map_data = json.loads(jsondata)
         symbol = map_data['symbol']

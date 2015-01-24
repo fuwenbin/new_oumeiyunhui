@@ -9,9 +9,9 @@ from processor import Processor
 class Support(Processor):
     """话题或者评论点赞"""
     def dowork(self):
-        type_d = self.jsonbody['type']
-        usercode = self.jsonbody['usercode']
-        topicid = self.jsonbody['topicid']
+        type_d = int(self.handler.get_argument('type',1000))
+        usercode = self.handler.get_argument('usercode',0)
+        topicid = self.handler.get_argument('topicid',0)
         try:
             if type_d ==0:
                 self.mydb.supportTopic(topicid, usercode)
@@ -19,6 +19,6 @@ class Support(Processor):
                 self.mydb.supportComment(topicid,usercode)
         except:
 #            Errors.TraceErrorHandler(self)
-            self.response_fail(u"重复点赞!!")
+            self.response_fail(u"support too much!!")
             return
         self.response_success()
