@@ -12,7 +12,9 @@ from tornado import httpserver
 import time
 import logging
 from handler.mainhandler import MainHandler
-
+import sys
+reload(sys)   
+sys.setdefaultencoding('utf8') 
 class MyApplication(tornado.web.Application):
     """application init here"""
     
