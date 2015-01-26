@@ -41,7 +41,6 @@ def initConfigParams():
     parser.read('serverconfig.cfg')
     server_port = parser.get('default','server_port')
     log_path = parser.get('default','log_path')
-    access_origin = parser.get('default',"access_control_request_origin")
     
     mysql_address = parser.get('mysql','host')
     mysql_user = parser.get('mysql','user')
@@ -52,7 +51,7 @@ def initConfigParams():
     redis_db = parser.get('redis','db')
     redis_pwd = parser.get('redis','pwd')
     
-    return (server_port,log_path,access_origin),(mysql_address,mysql_user,mysql_pwd),(redis_host,redis_port,redis_db,redis_pwd)
+    return (server_port,log_path),(mysql_address,mysql_user,mysql_pwd),(redis_host,redis_port,redis_db,redis_pwd)
 
 def initConnectToMysql(hostaddress,user,password):
     import torndb
