@@ -6,17 +6,18 @@ Created on 2015-1-24
 '''
 import re
 
-specialwords = ''',<.>/?;:'\"[{]}\\|`~!@#$%^&*()-=+ \r\n\t'''   
+specialSqlWords = '''[\,\<\.\>\/\?;:\'\"\[\{\]\}\\\\\|\`\~\!@#\$\%\^\&\*\(\)\-\=\+\000\r\n\t]'''   
 
 
 def filterSqlSpecialWord(words):
-    regex = re.compile('''[,<.>/?;:'\"[{]}\\|`~!@#$%^&*()-=+ \r\n\t]''')
+    regex = re.compile(specialSqlWords)
     
-    words = regex.sub(lambda m: '['+strB2Q(m.group(0))+']',words)
+    words = regex.sub(strB2Q,words)
     print words
     return words
     
-def strB2Q(ustring):
+def strB2Q(matched):
+    ustring = matched.group(0)
     rstring = ""
     for uchar in ustring:
         inside_code=ord(uchar)
@@ -31,5 +32,5 @@ def strB2Q(ustring):
 
 
 
-filterSqlSpecialWord("""asdfadsfasdfasdf<>>>>>>>>>>>>>""")
+#filterSqlSpecialWord("""asdfadsfasdfasd , , , [ [  ]]]  {}  ! #@ #　%  f<>>>>>>>>>>>>>""")
 #print strB2Q("""<>>>>>>""")

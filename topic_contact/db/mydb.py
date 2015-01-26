@@ -4,7 +4,7 @@ Created on 2014-12-31
 
 @author: fuwenbin
 '''
-
+from utils.filters import filterSqlSpecialWord
 
 class MyDB():
     
@@ -15,7 +15,8 @@ class MyDB():
         print 'init MYDB'
         self.conn = conn
     
-    
+
+        
     def saveCopyTopic(self):
         sql_str = 'insert into '
         self.conn.insert(sql_str)
@@ -31,12 +32,12 @@ class MyDB():
     
     def publishtopic(self,params):
         sql_str = """insert into topic_communicate_info(publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public)
-        values(%(publisherid)s,'%(publishername)s','%(content)s',%(topictype)s,%(relationkey)s,'%(ctime)s',%(ispublic)s)
+        values(%(publisherid)s,%(publishername)s,%(content)s,%(topictype)s,%(relationkey)s,%(ctime)s,%(ispublic)s)
         """
         return self.conn.insert(sql_str,
                                 publisherid = params['publisherid'],
                                 publishername = params['publishername'],
-                                content = params['content'],
+                                content = filterSqlSpecialWord(params['content']),
                                 topictype = params['topictype'],
                                 relationkey = params['relationkey'],
                                 ctime = params['ctime'],
@@ -156,7 +157,7 @@ class MyDB():
         
         
     def commentTopic(self,usercode,topicid,bycommentid,content,ctime):
-        sql_str = '''insert into comment_info(comment_publisherid,by_topicid,by_comment_id,content,ctime) values(%s,%s,%s,'%s','%s')'''%(usercode,topicid,bycommentid,content,ctime)
+        sql_str = '''insert into comment_info(comment_publisherid,by_topicid,by_comment_id,content,ctime) values(%s,%s,%s,'%s','%s')'''%(usercode,topicid,bycommentid,filterSqlSpecialWord(content),ctime)
         print sql_str
         return self.conn.insert(sql_str)
         

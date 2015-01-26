@@ -94,12 +94,26 @@ def testdofans():
                        }
     commucateModelTest('doattention',requestJsondata)
     
+class fortest(object):
+    
+    
+    def fortestDef(self,*params):
+        print params
+        print locals()
+        print self.__dict__
+    def __getattribute__(self,name):
+        print name
+        return object.__getattribute__(self,name)
+        
 if __name__== '__main__':
 #    testpusblishtopic()
 #    testgetfansinfomation()
 #    testdocomment()
 #    testdofans()
 #    testdotopicsupport()
-    testgethotinvesterinfo()
+#    testgethotinvesterinfo()
 #    testtopicdetail()
 #    testgetrelationinfos()
+    obj = fortest()
+    obj.fortestDef('[','asdfasdf',']')
+
