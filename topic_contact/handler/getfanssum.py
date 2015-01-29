@@ -13,10 +13,9 @@ class GetFansSum(Processor):
             usercodes = eval(self.handler.get_argument('usercodes',[]))
         except:
             self.response_fail("argument error!!!")
-        response_data = []
+        m = {}
         for usercode in usercodes:
-            m = {}
+            
             sum = self.mydb.getFansSum(usercode)
             m[usercode] = sum
-            response_data.append(m)
-        self.response_success(response_data)
+        self.response_success(m)

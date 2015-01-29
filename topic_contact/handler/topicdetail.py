@@ -45,7 +45,7 @@ class TopicDetail(Processor):
                 discuss['ptime']= time.time() - time.mktime(time.strptime(discuss['ctime'], "%Y-%m-%d %H:%M:%S")) 
                 discuss_list.append(discuss)
             comments_list.append(comment)
-            if(len(discuss_list)>0):
-                comment['discuss_list'] = discuss_list
+
+            comment['discuss_list'] = discuss_list
         topic_obj['comment_list'] = comments_list
         self.response_success(topic_obj)
