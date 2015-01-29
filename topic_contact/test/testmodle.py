@@ -98,7 +98,7 @@ def tesgetFansSum():
     requestJsondata = {
                    'usercodes':['1203','1204','1120','8086','8087','8089','1120','23098'],
                    }
-    commucateModelTest('fanssum',requestJsondata)
+    commucateModelTest('fanssum',requestJsondata,hosts='test.tigerwit.com')
     
 class fortest(object):
     

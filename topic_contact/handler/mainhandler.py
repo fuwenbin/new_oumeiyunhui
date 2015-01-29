@@ -51,7 +51,7 @@ class MainHandler(tornado.web.RequestHandler):
             handler = AttentionSomeBody(self)
         elif command == 'geinformation_p':
             handler = GetInfomation(self)
-        elif command == 'fanssum':
+        elif command == 'fanssum_p':
             handler = GetFansSum(self)
         else:
             raise HTTPError(status_code=404)
