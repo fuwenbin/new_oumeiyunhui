@@ -9,8 +9,10 @@ from processor import Processor
 class GetFansSum(Processor):
     
     def dowork(self):
-        
-        usercodes = eval(self.handler.get_argument('usercodes',[]))
+        try:
+            usercodes = eval(self.handler.get_argument('usercodes',[]))
+        except:
+            self.response_fail("argument error!!!")
         response_data = []
         for usercode in usercodes:
             m = {}
