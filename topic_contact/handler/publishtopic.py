@@ -26,6 +26,7 @@ class PublishTopic(Processor):
         ctime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
         data['ctime'] = ctime
         insertid = self.mydb.publishtopic(data)
+        data['comment_id']
         re_list = re.findall(r'@\S ',content)
         if len(re_list)>0:
             for reobj in re_list:
