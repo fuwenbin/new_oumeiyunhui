@@ -12,7 +12,8 @@ class TopicDetail(Processor):
     '''获取话题详情'''
     def dowork(self):
         
-        topicid = self.handler.get_argument('topic_id',0)
+        topicid = int(self.handler.get_argument('topic_id',0))
+        startindex = int(self.handler.get_argument('comment_startindex',0))
         row_entity = self.mydb.getTopicInfo(topicid)
         if not row_entity:
             self.response_fail("could't find the topic by topic Id!!!!")
@@ -22,9 +23,9 @@ class TopicDetail(Processor):
         topic_obj['publisher_id'] = row_entity.publisher_id
         if row_entity.topic_type == 0 :  #文字  and 评论
             topic_obj['title'] = row_entity.publisher_name
-            content = {}
-            content['text'] = row_entity.content
-            topic_obj['content'] = content 
+#            content = {}
+#            content['text'] = row_entity.content
+            topic_obj['content'] = row_entity.content 
         elif row_entity.topic_type == 1: #平仓 
             closeoutinfo = self.mydb.getcloseoutTopicInfo(row_entity.relation_key)
             topic_obj['title'] = row_entity.publisher_name + " " + Topic_Constants.closeout_ch + " " + closeoutinfo.out_type
@@ -35,14 +36,16 @@ class TopicDetail(Processor):
         topic_obj['tramsmit_sum'] = row_entity.tramsmit_sum
         topic_obj['topic_type'] = row_entity.topic_type
         comments_list = []
-        level1_comments = self.mydb.getTopicOfCommentLevel1(row_entity.topicid)
+        level1_comments = self.mydb.getTopicOfCommentLevel1(row_entity.topicid,startindex)
         for comment in level1_comments:
-            comment['ptime'] = time.mktime(time.strptime(comment['ctime'], "%Y-%m-%d %H:%M:%S")) - time.time()
+            comment['ptime'] = time.time() - time.mktime(time.strptime(comment['ctime'], "%Y-%m-%d %H:%M:%S"))
             discuss_list = []
-            level2_comments = self.mydb.getTopicOfCommentLevel2(comment.topic_id,comment.by_comment_id)
+            level2_comments = self.mydb.getTopicOfCommentLevel2(comment.by_topicid,comment.comment_id)
             for discuss in level2_comments:
-                discuss['ptime']= time.mktime(time.strptime(discuss['ctime'], "%Y-%m-%d %H:%M:%S")) - time.time()
+                discuss['ptime']= time.time() - time.mktime(time.strptime(discuss['ctime'], "%Y-%m-%d %H:%M:%S")) 
                 discuss_list.append(discuss)
             comments_list.append(comment)
+            if(len(discuss_list)>0):
+                comment['discuss_list'] = discuss_list
         topic_obj['comment_list'] = comments_list
         self.response_success(topic_obj)

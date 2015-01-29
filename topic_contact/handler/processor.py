@@ -18,7 +18,7 @@ class Processor():
             
     def _response_data(self,data):
         print "jsondata is :%s"%json_encode(data)
-        logging.debug("jsondata is %s",json_encode(data))
+#        logging.debug("jsondata is %s",json_encode(data))
 #        self.handler.add_header("Access-Control-Allow-Origin","*");
         self.handler.write(json_encode(data))
         

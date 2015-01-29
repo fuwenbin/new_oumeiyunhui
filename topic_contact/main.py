@@ -57,7 +57,7 @@ def initConfigParams():
 
 def initConnectToMysql(hostaddress,user,password):
     import torndb
-    dbConnected=torndb.Connection(hostaddress,'tiger_communicate',user,password)
+    dbConnected=torndb.Connection(hostaddress,'tiger_communicate',user,password,connect_timeout=1000)
     return dbConnected
 
 def initLog(syslogpath):

@@ -12,11 +12,8 @@ class MyDB():
     '''excute mysql options'''
     
     def __init__(self,conn):
-        print 'init MYDB'
         self.conn = conn
     
-
-        
     def saveCopyTopic(self):
         sql_str = 'insert into '
         self.conn.insert(sql_str)
@@ -86,23 +83,32 @@ class MyDB():
         entity = self.conn.get(sql_str,topicid)
         return entity.sum
     
-    def getTopicOfCommentLevel1(self,topicid):
+    def getTopicOfCommentLevel1(self,topicid,startindex,offset = 3):
         """获取对指定主题的直接所有评论"""
-        sql_str = """select w.comment_id,w.comment_publisherid,(select username 
-        from user_info where userid = w.comment_publisherid) as publisher_name,
+        sql_str = """select w.comment_id,w.comment_publisherid,
+        (select username from user_info where userid = w.comment_publisherid) as publisher_name,
         w.by_topicid,w.by_comment_id,w.content,
-        DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime, 
+        DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime, 
         (select count(supporter_id) from comment_support_rel where by_topicid = w.by_topicid) as support_sum,
         (select count(comment_id) from comment_info where by_comment_id = w.comment_id) as comment_sum
-        from comment_info w where w.by_topicid =%s and w.by_comment_id=0"""
-        return self.conn.query(sql_str,topicid)
+        from comment_info w where w.by_topicid =%s and w.by_comment_id=0 """%topicid
+        
+        if startindex>0:
+            sql_str = sql_str + " and w.comment_id>%s"%startindex
+            sql_str = sql_str + " order by w.comment_id desc"
+        else:
+            sql_str = sql_str + " order by w.comment_id desc"
+            sql_str = sql_str + " limit %s,%s"%(startindex,offset)
+        
+        return self.conn.query(sql_str)
     
-    def getTopicOfCommentLevel2(self,topicid,commentid):
+    def getTopicOfCommentLevel2(self,topicid,commentid,startindex=0,offset=0):
         """获取对主题的评论的相关2级评论"""
-        sql_str = """select comment_id,comment_publisherid,by_topicid,by_comment_id,content,
-        DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime,
+        sql_str = """select w.comment_id,w.comment_publisherid,w.by_topicid,w.by_comment_id,w.content,
+        DATE_FORMAT(w.ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime,
+        (select username from user_info where userid = w.comment_publisherid) as publisher_name,
         (select count(supporter_id) from comment_support_rel where by_topicid = %s) as support_sum
-        from comment_info where by_topicid =%s and by_comment_id=%s"""
+        from comment_info w where w.by_topicid =%s and w.by_comment_id=%s limit 3"""
         return self.conn.query(sql_str,topicid,topicid,commentid)
     
     def getcloseoutTopicInfo(self,closeoutid):
@@ -133,7 +139,7 @@ class MyDB():
     def getTopicInfo(self,topicid):
         
         sql_str = '''select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
-        DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime, 
+        DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime, 
         (select count(by_topicid) from tramsmit_rel where by_topicid = %s) as tramsmit_sum,
         (select count(supporter_id) from topic_support_rel where by_topicid = %s) as support_sum,
         (select count(comment_id) from comment_info where by_topicid = %s) as comment_sum
@@ -196,4 +202,7 @@ class MyDB():
     def maptramsmit(self,bytramsmittopicid,who):
         sql_str = '''insert into tramsmit_rel (by_topicid,who,ctime) values(%s,%s,now())'''
         return self.conn.insert(sql_str,bytramsmittopicid,who)
-        
+    
+    def getFansSum(self,usercode):
+        sql_str = '''select count(id) as sum from fans_rel where by_attention_id = %s'''%usercode
+        return self.conn.get(sql_str).sum

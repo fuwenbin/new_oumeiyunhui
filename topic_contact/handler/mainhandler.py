@@ -13,23 +13,13 @@ from getrelationinfos import GetRelationInfos
 from getinfomation import GetInfomation
 from publishtopic import PublishTopic
 from topicdetail import TopicDetail
+from getfanssum import GetFansSum
 from support import Support
 from utils.errors import Errors
 from tornado.web import HTTPError
+import logging
 
-class BaseHandler(tornado.web.RequestHandler):
-    
-    def set_default_headers(self):
-        pass
-#        tornado.web.RequestHandler.set_default_headers(self)
-#        self.set_header('Access-Control-Allow-Origin', 'http://192.168.1.59:9000')
-#        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-#        self.set_header('Access-Control-Max-Age', 1000)
-#        self.set_header('Access-Control-Allow-Headers', 'origin, x-csrftoken, content-type, accept , If-Modified-Since')
-#        self.set_header('Access-Control-Allow-Headers', 'If-Modified-Since')
-#        self.set_header('If-Modified-Since', 0)
-#        self.set_header('Content-type', 'application/json')
-class MainHandler(BaseHandler):
+class MainHandler(tornado.web.RequestHandler):
     
     
     '''this class will handle all request .  it will payout request to the specific handler'''
@@ -41,7 +31,7 @@ class MainHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self, command):
         print "command is : %s"%command
-        
+        logging.info("command is : %s",command)
         handler = None
         if command == 'hotinvester_p':
             handler = HotInvester(self)
@@ -61,6 +51,8 @@ class MainHandler(BaseHandler):
             handler = AttentionSomeBody(self)
         elif command == 'geinformation_p':
             handler = GetInfomation(self)
+        elif command == 'fanssum':
+            handler = GetFansSum(self)
         else:
             raise HTTPError(status_code=404)
         if handler :
@@ -72,16 +64,6 @@ class MainHandler(BaseHandler):
         print "request post"
         self.finish()
     
-    def prepare(self):
-        """处理跨域请求"""
-#        accessl = eval(self.application.config[2])
-#        origin = self.request.headers.get("Origin","")
-#        accessControlRequestMethod = self.request.headers.get("Access-Control-Request-Method","")
-#        if not accessl or  accessl is '' or origin is '' or accessControlRequestMethod is '':
-#            return None
-#        for access_origin in accessl:
-#            if access_origin == origin:
-#                self.request.method = accessControlRequestMethod
-#        return None
+
 
 

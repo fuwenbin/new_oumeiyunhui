@@ -94,6 +94,12 @@ def testdofans():
                        }
     commucateModelTest('doattention',requestJsondata)
     
+def tesgetFansSum():
+    requestJsondata = {
+                   'usercodes':['1203','1204','1120','8086','8087','8089','1120','23098'],
+                   }
+    commucateModelTest('fanssum',requestJsondata)
+    
 class fortest(object):
     
     
@@ -114,6 +120,7 @@ if __name__== '__main__':
 #    testgethotinvesterinfo()
 #    testtopicdetail()
 #    testgetrelationinfos()
-    obj = fortest()
-    obj.fortestDef('[','asdfasdf',']')
+    tesgetFansSum()
+#    obj = fortest()
+#    obj.fortestDef('[','asdfasdf',']')
 
