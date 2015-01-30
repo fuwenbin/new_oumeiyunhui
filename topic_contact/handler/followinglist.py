@@ -1,0 +1,16 @@
+#-*- coding:utf-8 -*-
+'''
+Created on 2015-1-30
+
+@author: fuwenbin
+'''
+
+from processor import Processor
+class FollowingList(Processor):
+    def dowork(self):
+        startindex = self.handler.get_argument('startIndex',0)
+        offset = self.handler.get_argument('offset',10)
+        usercode = self.handler.get_cookie('userCode')
+        entities = self.mydb.getFansList(startindex, offset, usercode)
+        
+        self.response_success(entities)

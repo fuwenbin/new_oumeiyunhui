@@ -12,6 +12,7 @@ from tornado import httpserver
 import time
 import logging
 from handler.mainhandler import MainHandler
+from handler.loginauthhandler import LoginAutheHandler
 import sys
 reload(sys)   
 sys.setdefaultencoding('utf8') 
@@ -23,12 +24,15 @@ class MyApplication(tornado.web.Application):
         start = time.time()
         
         handlers = [
-                    (r"/communicate/api/([a-z_]+)",MainHandler)
+                    (r"/communicate/api/([a-z_]+)",MainHandler),
+                    (r"/login_url",LoginAutheHandler)
                     ]
         
         settings = dict(gzip= True,
                        debug = False,
-                       xsrf_cookies=False)
+                       xsrf_cookies=False,
+                       cookie_secret="YXRvbS50cmFkZSBpcyB0aGUgYmVzdAo=",
+                       login_url="/login_url")
         self.conn = conn
         self.conn.execute('SET time_zone="+8:00"')
         tornado.web.Application.__init__(self,handlers=handlers,**settings)

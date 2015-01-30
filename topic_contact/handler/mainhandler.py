@@ -13,6 +13,7 @@ from getrelationinfos import GetRelationInfos
 from getinfomation import GetInfomation
 from publishtopic import PublishTopic
 from topicdetail import TopicDetail
+from followinglist import FollowingList
 from getfanssum import GetFansSum
 from support import Support
 from utils.errors import Errors
@@ -21,17 +22,19 @@ import logging
 
 class MainHandler(tornado.web.RequestHandler):
     
-    
     '''this class will handle all request .  it will payout request to the specific handler'''
+
     @tornado.web.asynchronous
     def post(self, command):
         self.write("hello get method ! server is runging")
         print "requst get command:%s" % command
         self.finish()
+#    @tornado.web.authenticated
     @tornado.web.asynchronous
     def get(self, command):
         print "command is : %s"%command
         logging.info("command is : %s",command)
+#        print self.get_secure_cookie("user")
         handler = None
         if command == 'hotinvester_p':
             handler = HotInvester(self)
@@ -53,6 +56,8 @@ class MainHandler(tornado.web.RequestHandler):
             handler = GetInfomation(self)
         elif command == 'fanssum_p':
             handler = GetFansSum(self)
+        elif command =='followinglist':
+            handler = FollowingList(self)
         else:
             raise HTTPError(status_code=404)
         if handler :
@@ -63,6 +68,10 @@ class MainHandler(tornado.web.RequestHandler):
                 self.write("")##返回空字符串,代表服务器报错
         print "request post"
         self.finish()
+    
+    def get_current_user(self):
+        user = self.get_secure_cookie("user")
+        return user
     
 
 

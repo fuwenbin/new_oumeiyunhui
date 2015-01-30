@@ -89,7 +89,7 @@ class MyDB():
         (select username from user_info where userid = w.comment_publisherid) as publisher_name,
         w.by_topicid,w.by_comment_id,w.content,
         DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime, 
-        (select count(supporter_id) from comment_support_rel where by_topicid = w.by_topicid) as support_sum,
+        (select count(supporter_id) from comment_support_rel where by_commentid = w.by_topicid) as support_sum,
         (select count(comment_id) from comment_info where by_comment_id = w.comment_id) as comment_sum
         from comment_info w where w.by_topicid =%s and w.by_comment_id=0 """%topicid
         
@@ -107,9 +107,9 @@ class MyDB():
         sql_str = """select w.comment_id,w.comment_publisherid,w.by_topicid,w.by_comment_id,w.content,
         DATE_FORMAT(w.ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime,
         (select username from user_info where userid = w.comment_publisherid) as publisher_name,
-        (select count(supporter_id) from comment_support_rel where by_topicid = %s) as support_sum
+        (select count(supporter_id) from comment_support_rel where by_commentid = %s) as support_sum
         from comment_info w where w.by_topicid =%s and w.by_comment_id=%s limit 3"""
-        return self.conn.query(sql_str,topicid,topicid,commentid)
+        return self.conn.query(sql_str,commentid,topicid,commentid)
     
     def getcloseoutTopicInfo(self,closeoutid):
         '''获取平仓信息'''
@@ -131,7 +131,7 @@ class MyDB():
         sql_str= '''select comment_id,comment_publisherid,by_topicid,by_comment_id,
         content,DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime,
         (select count(comment_id) from comment_info where by_comment_id = %s) as comment_sum,
-        (select count(supporter_id) from comment_support_rel where by_topicid = %s) as support_sum
+        (select count(supporter_id) from comment_support_rel where by_commentid = %s) as support_sum
         from comment_info comment_id = %s join '''
         return self.conn.get(sql_str,commentid,commentid,commentid)
         
@@ -181,9 +181,9 @@ class MyDB():
         sql_str = """insert into topic_support_rel (supporter_id,by_topicid,ctime) values(%s,%s,now())"""
         self.conn.insert(sql_str,who,topicid)
         
-    def supportComment(self,topicid,who):
-        sql_str = """insert into comment_support_rel (supporter_id,by_topicid,ctime) values(%s,%s,now())"""
-        self.conn.insert(sql_str,who,topicid)
+    def supportComment(self,commentid,who):
+        sql_str = """insert into comment_support_rel (supporter_id,by_commentid,ctime) values(%s,%s,now())"""
+        self.conn.insert(sql_str,who,commentid)
     
     def deletetopic(self,usercode,topicid):
         sql_str = "update table topic_communicate_info set state = 0 where publisher_id = %s and topicid = %s"
@@ -206,3 +206,14 @@ class MyDB():
     def getFansSum(self,usercode):
         sql_str = '''select count(id) as sum from fans_rel where by_attention_id = %s'''%usercode
         return self.conn.get(sql_str).sum
+    
+    def getFansList(self,startindex,offset,usercode):
+        sql_str = '''SELECT f.fans_id AS userCode,
+                    (SELECT COUNT(fans_id) FROM fans_rel WHERE by_attention_id=f.fans_id) AS fanCount,
+                    (SELECT username FROM user_info WHERE userid=f.fans_id) AS userName
+                    FROM  fans_rel f
+                    WHERE f.by_attention_id = %s limit %s,%s'''%(usercode,startindex,offset)
+        return self.conn.query(sql_str)
+        
+        
+        

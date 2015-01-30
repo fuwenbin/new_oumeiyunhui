@@ -8,21 +8,23 @@ import urllib
 import urllib2
 import httplib
 import json
+import cookielib
 from tornado.escape import json_decode
 
 def commucateModelTest(uri,param,hosts ="127.0.0.1:5002"):
-    headers = {"Content-type":"application/x-www-form-urlencoded","Accept":"text/plain"}
+    headers = {"Content-type":"application/x-www-form-urlencoded",
+               "Accept":"text/plain",
+               "Cookie":"userCode = 1204"}
     conn = httplib.HTTPConnection(hosts)
     data = urllib.urlencode(param)
 #    data = json.dumps(param,encoding = 'utf-8')
-    
-    conn.request("GET","/communicate/api/"+uri+"?startindex=0&offset=10",data,headers)
+    conn.request("GET","/communicate/api/"+uri,data,headers)
     response = conn.getresponse()
-    if response.status == 200:
-        print "command:%s"%uri
-        print "request:%s"%data
-        rdata = response.read()
-        print "response:%s"%rdata 
+#    if response.status == 200:
+    print "command:%s"%uri
+    print "request:%s"%data
+    rdata = response.read()
+    print "response:%s"%rdata 
 
 def trasformDict(dictobj):
     
@@ -100,6 +102,12 @@ def tesgetFansSum():
                    }
     commucateModelTest('fanssum',requestJsondata,hosts='test.tigerwit.com')
     
+def testgetFansInfoLists():
+    requestjsondata = {
+                    'startIndex':0,
+                    'offset':10
+                       }
+    commucateModelTest('followinglist',requestjsondata)
 class fortest(object):
     
     
@@ -120,7 +128,8 @@ if __name__== '__main__':
 #    testgethotinvesterinfo()
 #    testtopicdetail()
 #    testgetrelationinfos()
-    tesgetFansSum()
+
+    testgetFansInfoLists()
 #    obj = fortest()
 #    obj.fortestDef('[','asdfasdf',']')
 
