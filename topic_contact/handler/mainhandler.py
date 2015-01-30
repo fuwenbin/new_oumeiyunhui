@@ -56,7 +56,7 @@ class MainHandler(tornado.web.RequestHandler):
             handler = GetInfomation(self)
         elif command == 'fanssum_p':
             handler = GetFansSum(self)
-        elif command =='followinglist':
+        elif command =='followinglist_p':
             handler = FollowingList(self)
         else:
             raise HTTPError(status_code=404)

@@ -107,7 +107,7 @@ def testgetFansInfoLists():
                     'startIndex':0,
                     'offset':10
                        }
-    commucateModelTest('followinglist',requestjsondata)
+    commucateModelTest('followinglist_p',requestjsondata)
 class fortest(object):
     
     
