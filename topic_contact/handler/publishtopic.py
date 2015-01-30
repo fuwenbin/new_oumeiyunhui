@@ -40,6 +40,4 @@ class PublishTopic(Processor):
                 self.response_fail("重复转发!!")
                 return
         
-        
-        
         self.response_success()

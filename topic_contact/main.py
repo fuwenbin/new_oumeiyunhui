@@ -24,7 +24,7 @@ class MyApplication(tornado.web.Application):
         start = time.time()
         
         handlers = [
-                    (r"/communicate/api/([a-z_]+)",MainHandler),
+                    (r"/communicate/api/([a-z]+)",MainHandler),
                     (r"/login_url",LoginAutheHandler)
                     ]
         

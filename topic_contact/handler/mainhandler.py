@@ -36,27 +36,27 @@ class MainHandler(tornado.web.RequestHandler):
         logging.info("command is : %s",command)
 #        print self.get_secure_cookie("user")
         handler = None
-        if command == 'hotinvester_p':
+        if command == 'hotinvester':
             handler = HotInvester(self)
-        elif command == 'publishtopic_p':
+        elif command == 'publishtopic':
             handler = PublishTopic(self)
-        elif command == 'topicdetail_p':
+        elif command == 'topicdetail':
             handler = TopicDetail(self)
-        elif command == 'attentionsfans_p':
+        elif command == 'attentionsfans':
             handler = GetAttentionAndFansInfo(self)
-        elif command == 'relationtopic_p':
+        elif command == 'relationtopic':
             handler = GetRelationInfos(self)
-        elif command == 'dosupportpoint_p':
+        elif command == 'dosupportpoint':
             handler = Support(self)
-        elif command == 'docomment_p':
+        elif command == 'docomment':
             handler = Comment(self)
-        elif command == 'doattention_p':
+        elif command == 'doattention':
             handler = AttentionSomeBody(self)
-        elif command == 'geinformation_p':
+        elif command == 'geinformation':
             handler = GetInfomation(self)
-        elif command == 'fanssum_p':
+        elif command == 'fanssum':
             handler = GetFansSum(self)
-        elif command =='followinglist_p':
+        elif command =='followinglist':
             handler = FollowingList(self)
         else:
             raise HTTPError(status_code=404)

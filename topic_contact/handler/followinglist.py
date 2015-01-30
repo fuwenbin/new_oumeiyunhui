@@ -10,7 +10,7 @@ class FollowingList(Processor):
     def dowork(self):
         startindex = self.handler.get_argument('startIndex',0)
         offset = self.handler.get_argument('offset',10)
-        usercode = self.handler.get_cookie('userCode')
-        entities = self.mydb.getFansList(startindex, offset, usercode)
+        usercode = self.handler.get_argument('userCode',0)
         
+        entities = self.mydb.getFansList(startindex, offset, usercode)
         self.response_success(entities)

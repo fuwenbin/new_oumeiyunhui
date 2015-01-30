@@ -108,7 +108,7 @@ class MyDB():
         DATE_FORMAT(w.ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime,
         (select username from user_info where userid = w.comment_publisherid) as publisher_name,
         (select count(supporter_id) from comment_support_rel where by_commentid = %s) as support_sum
-        from comment_info w where w.by_topicid =%s and w.by_comment_id=%s limit 3"""
+        from comment_info w where w.by_topicid =%s and w.by_comment_id=%s order by comment_id desc limit 3"""
         return self.conn.query(sql_str,commentid,topicid,commentid)
     
     def getcloseoutTopicInfo(self,closeoutid):
@@ -168,7 +168,7 @@ class MyDB():
         return self.conn.insert(sql_str)
         
     def getTopicIdByCommentId(self,commentid):
-        sql_str = '''select by_topicid from comment_info where by_comment_id = %s'''
+        sql_str = '''select by_topicid from comment_info where comment_id = %s'''
         topicid =0
         try:
             topicid = self.conn.get(sql_str,commentid).by_topicid
