@@ -11,6 +11,11 @@ class FollowingList(Processor):
         startindex = self.handler.get_argument('startIndex',0)
         offset = self.handler.get_argument('offset',10)
         usercode = self.handler.get_argument('userCode',0)
+        type = self.handler.get_argument('type',0)
         
-        entities = self.mydb.getFansList(startindex, offset, usercode)
-        self.response_success(entities)
+        if not type:
+            entities = self.mydb.getFansList(startindex, offset, usercode)
+            self.response_success(entities)
+        else:
+            entities = self.mydb.getbFansList(startindex, offset, usercode)
+            self.response_success(entities)

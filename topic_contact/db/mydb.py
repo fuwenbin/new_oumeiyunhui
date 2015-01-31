@@ -83,33 +83,38 @@ class MyDB():
         entity = self.conn.get(sql_str,topicid)
         return entity.sum
     
-    def getTopicOfCommentLevel1(self,topicid,startindex,offset = 3):
+    def getTopicOfCommentLevel1(self,topicid,startindex,offset = 10):
         """获取对指定主题的直接所有评论"""
         sql_str = """select w.comment_id,w.comment_publisherid,
         (select username from user_info where userid = w.comment_publisherid) as publisher_name,
         w.by_topicid,w.by_comment_id,w.content,
         DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime, 
-        (select count(supporter_id) from comment_support_rel where by_commentid = w.by_topicid) as support_sum,
+        (select count(supporter_id) from comment_support_rel where by_commentid = w.comment_id) as support_sum,
         (select count(comment_id) from comment_info where by_comment_id = w.comment_id) as comment_sum
         from comment_info w where w.by_topicid =%s and w.by_comment_id=0 """%topicid
         
-        if startindex>0:
-            sql_str = sql_str + " and w.comment_id>%s"%startindex
-            sql_str = sql_str + " order by w.comment_id desc"
-        else:
-            sql_str = sql_str + " order by w.comment_id desc"
-            sql_str = sql_str + " limit %s,%s"%(startindex,offset)
+   
+        sql_str = sql_str + " order by w.comment_id desc limit %s,%s"%(startindex,offset)
+
         
         return self.conn.query(sql_str)
     
-    def getTopicOfCommentLevel2(self,topicid,commentid,startindex=0,offset=0):
+    def getTopicOfCommentLevel2(self,bycommentid,startIdOrIndex=0,offset=3):
         """获取对主题的评论的相关2级评论"""
         sql_str = """select w.comment_id,w.comment_publisherid,w.by_topicid,w.by_comment_id,w.content,
-        DATE_FORMAT(w.ctime,'%%Y-%%m-%%d %%H:%%i:%%s') ctime,
+        DATE_FORMAT(w.ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime,
         (select username from user_info where userid = w.comment_publisherid) as publisher_name,
-        (select count(supporter_id) from comment_support_rel where by_commentid = %s) as support_sum
-        from comment_info w where w.by_topicid =%s and w.by_comment_id=%s order by comment_id desc limit 3"""
-        return self.conn.query(sql_str,commentid,topicid,commentid)
+        (select count(supporter_id) from comment_support_rel where by_commentid = w.comment_id) as support_sum
+        from comment_info w where w.by_comment_id=%s"""%(bycommentid)
+        
+        if startIdOrIndex>0:
+            sql_str = sql_str + " and comment_id < %s"%startIdOrIndex
+            sql_str = sql_str + " order by w.comment_id desc"
+        else:
+            sql_str = sql_str + " order by w.comment_id desc"
+            sql_str = sql_str + " limit %s,%s"%(startIdOrIndex,offset)
+        
+        return self.conn.query(sql_str)
     
     def getcloseoutTopicInfo(self,closeoutid):
         '''获取平仓信息'''
@@ -215,5 +220,11 @@ class MyDB():
                     WHERE f.by_attention_id = %s limit %s,%s'''%(usercode,startindex,offset)
         return self.conn.query(sql_str)
         
-        
+    def getbFansList(self,startindex,offset,usercode):
+        sql_str = '''SELECT f.fans_id AS userCode,
+                    (SELECT COUNT(fans_id) FROM fans_rel WHERE by_attention_id=f.fans_id) AS fanCount,
+                    (SELECT username FROM user_info WHERE userid=f.fans_id) AS userName
+                    FROM  fans_rel f
+                    WHERE f.fans_id = %s limit %s,%s'''%(usercode,startindex,offset)
+        return self.conn.query(sql_str)
         

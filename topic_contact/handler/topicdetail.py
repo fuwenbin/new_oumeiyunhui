@@ -14,17 +14,28 @@ class TopicDetail(Processor):
         
         topicid = int(self.handler.get_argument('topic_id',0))
         startindex = int(self.handler.get_argument('comment_startindex',0))
+        topic_data = None
+        if startindex ==0:
+            topic_data = self.getTheTopicInfo(topicid)
+            if not topic_data:
+                self.response_fail("could't find the topic by topic Id!!!!")
+        else:
+            topic_data = self.getCommentLeve1(topicid, startindex)
+        
+        self.response_success(topic_data)
+    
+    def getTheTopicInfo(self,topicid):
+        '''获取topic基本信息'''
+     
         row_entity = self.mydb.getTopicInfo(topicid)
         if not row_entity:
-            self.response_fail("could't find the topic by topic Id!!!!")
-            return
+            
+            return None
         topic_obj = {}
         topic_obj['topicid'] = row_entity.topicid
         topic_obj['publisher_id'] = row_entity.publisher_id
         if row_entity.topic_type == 0 :  #文字  and 评论
             topic_obj['title'] = row_entity.publisher_name
-#            content = {}
-#            content['text'] = row_entity.content
             topic_obj['content'] = row_entity.content 
         elif row_entity.topic_type == 1: #平仓 
             closeoutinfo = self.mydb.getcloseoutTopicInfo(row_entity.relation_key)
@@ -35,17 +46,25 @@ class TopicDetail(Processor):
         topic_obj['comment_sum'] = row_entity.comment_sum
         topic_obj['tramsmit_sum'] = row_entity.tramsmit_sum
         topic_obj['topic_type'] = row_entity.topic_type
+        commentlist = self.getCommentLeve1(topicid, 0)
+        topic_obj['comment_list'] = commentlist
+        return topic_obj
+    
+    def getCommentLeve1(self,topicid,startindex):
         comments_list = []
-        level1_comments = self.mydb.getTopicOfCommentLevel1(row_entity.topicid,startindex)
+        level1_comments = self.mydb.getTopicOfCommentLevel1(topicid,startindex)
         for comment in level1_comments:
             comment['ptime'] = time.time() - time.mktime(time.strptime(comment['ctime'], "%Y-%m-%d %H:%M:%S"))
-            discuss_list = []
-            level2_comments = self.mydb.getTopicOfCommentLevel2(comment.by_topicid,comment.comment_id)
-            for discuss in level2_comments:
-                discuss['ptime']= time.time() - time.mktime(time.strptime(discuss['ctime'], "%Y-%m-%d %H:%M:%S")) 
-                discuss_list.append(discuss)
+            discusslist = self.getCommentLeve2(comment.comment_id,0)
+            comment['discuss_list'] = discusslist
             comments_list.append(comment)
-
-            comment['discuss_list'] = discuss_list
-        topic_obj['comment_list'] = comments_list
-        self.response_success(topic_obj)
+        return comments_list
+    
+    def getCommentLeve2(self,byCommentid,startindex):
+        discuss_list = []
+        level2_comments = self.mydb.getTopicOfCommentLevel2(byCommentid,startindex)
+        for discuss in level2_comments:
+            discuss['ptime']= time.time() - time.mktime(time.strptime(discuss['ctime'], "%Y-%m-%d %H:%M:%S")) 
+            discuss_list.append(discuss)
+        return discuss_list
+        

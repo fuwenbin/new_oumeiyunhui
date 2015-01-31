@@ -15,6 +15,7 @@ from publishtopic import PublishTopic
 from topicdetail import TopicDetail
 from followinglist import FollowingList
 from getfanssum import GetFansSum
+from getremaindiscuss import GetRemainDiscuss
 from support import Support
 from utils.errors import Errors
 from tornado.web import HTTPError
@@ -58,6 +59,8 @@ class MainHandler(tornado.web.RequestHandler):
             handler = GetFansSum(self)
         elif command =='followinglist':
             handler = FollowingList(self)
+        elif command =='getremaindiscuss':
+            handler = GetRemainDiscuss(self)
         else:
             raise HTTPError(status_code=404)
         if handler :
