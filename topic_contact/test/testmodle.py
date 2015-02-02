@@ -107,7 +107,7 @@ def testgetFansInfoLists():
                     'startIndex':0,
                     'offset':10,
                     'userCode':23703,
-                    'type':1
+                    'type':0
                        }
     commucateModelTest('fflist',requestjsondata)
 class fortest(object):

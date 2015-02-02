@@ -11,7 +11,7 @@ class FollowList(Processor):
         startindex = self.handler.get_argument('startIndex',0)
         offset = self.handler.get_argument('offset',10)
         usercode = self.handler.get_argument('userCode',0)
-        type = self.handler.get_argument('type',0)
+        type = int(self.handler.get_argument('type',0))
         fansinfo = self.mydb.getfansInfos(usercode)
         entities = None
         if type:
