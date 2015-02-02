@@ -105,9 +105,11 @@ def tesgetFansSum():
 def testgetFansInfoLists():
     requestjsondata = {
                     'startIndex':0,
-                    'offset':10
+                    'offset':10,
+                    'userCode':23703,
+                    'type':1
                        }
-    commucateModelTest('followinglist_p',requestjsondata)
+    commucateModelTest('fflist',requestjsondata)
 class fortest(object):
     
     

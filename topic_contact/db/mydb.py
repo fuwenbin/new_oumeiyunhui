@@ -222,9 +222,9 @@ class MyDB():
         return self.conn.query(sql_str)
         
     def getbFansList(self,startindex,offset,usercode):
-        sql_str = '''SELECT f.fans_id AS userCode,
+        sql_str = '''SELECT f.by_attention_id AS userCode,
                     (SELECT COUNT(fans_id) FROM fans_rel WHERE by_attention_id=f.fans_id) AS fanCount,
-                    (SELECT username FROM user_info WHERE userid=f.fans_id) AS userName
+                    (SELECT username FROM user_info WHERE userid=f.by_attention_id) AS userName
                     FROM  fans_rel f
                     WHERE f.fans_id = %s limit %s,%s'''%(usercode,startindex,offset)
         return self.conn.query(sql_str)
