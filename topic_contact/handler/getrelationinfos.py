@@ -9,7 +9,7 @@ from processor import Processor
 from constants.constant import Topic_Constants
 import time
 class GetRelationInfos(Processor):
-    '''获取与自己相关的投资信息'''
+    '''获取与某相关的投资信息'''
     def dowork(self):
         usercode = self.handler.get_argument('usercode',0)
         startindex = self.handler.get_argument('startindex',0)

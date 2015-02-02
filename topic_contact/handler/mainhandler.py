@@ -13,7 +13,7 @@ from getrelationinfos import GetRelationInfos
 from getinfomation import GetInfomation
 from publishtopic import PublishTopic
 from topicdetail import TopicDetail
-from followinglist import FollowingList
+from followinglist import FollowList
 from getfanssum import GetFansSum
 from getremaindiscuss import GetRemainDiscuss
 from support import Support
@@ -57,8 +57,8 @@ class MainHandler(tornado.web.RequestHandler):
             handler = GetInfomation(self)
         elif command == 'fanssum':
             handler = GetFansSum(self)
-        elif command =='followinglist':
-            handler = FollowingList(self)
+        elif command =='fflist':
+            handler = FollowList(self)
         elif command =='getremaindiscuss':
             handler = GetRemainDiscuss(self)
         else:

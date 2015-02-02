@@ -6,7 +6,7 @@ Created on 2015-1-30
 '''
 
 from processor import Processor
-class FollowingList(Processor):
+class FollowList(Processor):
     def dowork(self):
         startindex = self.handler.get_argument('startIndex',0)
         offset = self.handler.get_argument('offset',10)
