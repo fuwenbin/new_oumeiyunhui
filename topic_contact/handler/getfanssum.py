@@ -13,6 +13,7 @@ class GetFansSum(Processor):
             usercodes = eval(self.handler.get_argument('usercodes',[]))
         except:
             self.response_fail("argument error!!!")
+            return 
         m = []
         for usercode in usercodes:
             n = {}

@@ -12,10 +12,15 @@ class FollowList(Processor):
         offset = self.handler.get_argument('offset',10)
         usercode = self.handler.get_argument('userCode',0)
         type = self.handler.get_argument('type',0)
-        
+        fansinfo = self.mydb.getfansInfos(usercode)
+        entities = None
         if not type:
             entities = self.mydb.getFansList(startindex, offset, usercode)
-            self.response_success(entities)
         else:
             entities = self.mydb.getbFansList(startindex, offset, usercode)
-            self.response_success(entities)
+        json_struct = {}
+        json_struct['list'] = entities
+        json_struct['fan_info']=fansinfo
+        self.response_success(json_struct)
+        
+    

@@ -211,7 +211,8 @@ class MyDB():
     def getFansSum(self,usercode):
         sql_str = '''select count(id) as sum from fans_rel where by_attention_id = %s'''%usercode
         return self.conn.get(sql_str).sum
-    
+    def getAttentionSums(self,usercode):
+        pass
     def getFansList(self,startindex,offset,usercode):
         sql_str = '''SELECT f.fans_id AS userCode,
                     (SELECT COUNT(fans_id) FROM fans_rel WHERE by_attention_id=f.fans_id) AS fanCount,
