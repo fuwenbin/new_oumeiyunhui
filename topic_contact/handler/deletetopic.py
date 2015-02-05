@@ -15,11 +15,11 @@ class DeleteTopic(Processor):
         topicid = self.handler.get_argument('topicid',0)
         rowcount = 0
         if typecode == 0:
-            rowcount = self.mydb.deletetopic(usercode, topicid)
+            rowcount = self.mydb.deletetopic(usercode,topicid)
         elif typecode ==1:
-            rowcount = self.mydb.deletecomment(usercode, topicid)
+            rowcount = self.mydb.deletecomment(usercode,topicid)
             
         if rowcount==1:
             self.response_success()
         else:
-            self.response_fail("delete fail,because can not find object!!")
+            self.response_fail("delete fail,because can not find object or you have no permission!!")

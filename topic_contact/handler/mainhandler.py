@@ -16,6 +16,7 @@ from topicdetail import TopicDetail
 from followinglist import FollowList
 from getfanssum import GetFansSum
 from getremaindiscuss import GetRemainDiscuss
+from deletetopic import DeleteTopic
 from support import Support
 from utils.errors import Errors
 from tornado.web import HTTPError
@@ -61,6 +62,8 @@ class MainHandler(tornado.web.RequestHandler):
             handler = FollowList(self)
         elif command =='getremaindiscuss':
             handler = GetRemainDiscuss(self)
+        elif command =='deletetopic':
+            handler = DeleteTopic(self)
         else:
             raise HTTPError(status_code=404)
         if handler :

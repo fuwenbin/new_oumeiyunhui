@@ -41,7 +41,7 @@ class MyDB():
                                 ispublic = params['ispublic']
                                 )
         
-    def getPublicTopic(self,startindex=0,offset=None):
+    def getPublicTopic(self,startindex=0,offset=10):
         
         sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
             DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime ,
@@ -49,20 +49,19 @@ class MyDB():
             (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
             (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
             from topic_communicate_info w where is_public = 1 and state = 1 order by topicid desc limit %s,%s"""
-        if offset==None:
-            offset = 10
+
         results = self.conn.query(sql_str,startindex,offset)
         return results
     
-    def getRelationInfo(self,usercode,startindex,offset):
+    def getRelationInfo(self,usercode,startindex,offset=10):
         sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
-            DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime ,
+            DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime ,
             (select count(by_topicid) from tramsmit_rel where by_topicid = w.topicid) as tramsmit_sum,
-            (select count(supporter_id) from topic_support_rel where topicid = w.topicid) as support_sum,
+            (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
             (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
             from topic_communicate_info w where publisher_id = %s and state = 1 order by topicid desc limit %s,%s
-        """
-        return self.conn.query(sql_str,usercode,startindex,offset)
+        """%(usercode,startindex,offset)
+        return self.conn.query(sql_str)
     
     def getTopicSupportSum(self,topicid):
         
@@ -91,7 +90,7 @@ class MyDB():
         DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime, 
         (select count(supporter_id) from comment_support_rel where by_commentid = w.comment_id) as support_sum,
         (select count(comment_id) from comment_info where by_comment_id = w.comment_id) as comment_sum
-        from comment_info w where w.by_topicid =%s and w.by_comment_id=0 """%topicid
+        from comment_info w where w.by_topicid =%s and w.by_comment_id=0 and w.state = 1"""%topicid
         
    
         sql_str = sql_str + " order by w.comment_id desc limit %s,%s"%(startindex,offset)
@@ -105,7 +104,7 @@ class MyDB():
         DATE_FORMAT(w.ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime,
         (select username from user_info where userid = w.comment_publisherid) as publisher_name,
         (select count(supporter_id) from comment_support_rel where by_commentid = w.comment_id) as support_sum
-        from comment_info w where w.by_comment_id=%s"""%(bycommentid)
+        from comment_info w where w.by_comment_id=%s and w.state = 1"""%(bycommentid)
         
         if startIdOrIndex>0:
             sql_str = sql_str + " and comment_id < %s"%startIdOrIndex
@@ -191,7 +190,7 @@ class MyDB():
         self.conn.insert(sql_str,who,commentid)
     
     def deletetopic(self,usercode,topicid):
-        sql_str = "update table topic_communicate_info set state = 0 where publisher_id = %s and topicid = %s"
+        sql_str = "update topic_communicate_info set state = 0 where publisher_id = %s and topicid = %s"
         return self.conn.update(sql_str,usercode,topicid)
         
     

@@ -13,11 +13,14 @@ class GetRelationInfos(Processor):
     def dowork(self):
         usercode = self.handler.get_argument('usercode',0)
         startindex = self.handler.get_argument('startindex',0)
-        offset = self.handler.get_argument('offset',0)
-        rows = self.mydb.getRelationInfo(usercode,startindex,offset)
+        #获取相关的话题列表
+                # 1.交易
+                # 2.复制
+                # 3 话题
+        rows = self.mydb.getRelationInfo(usercode,startindex)
         topic_data = []
         for row in rows:
-            row['ptime'] = time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S")) - time.time()
+            row['ptime'] =  time.time()-time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S"))
             topictype = row['topic_type']
             if topictype == 0:
                 row['title'] = row.publisher_name
@@ -32,8 +35,6 @@ class GetRelationInfos(Processor):
                 row['title'] = row.publisher_name + "　" + Topic_Constants.copy_ing + " " + copyinfo.byname
                 copyinfo['be_follow_sum'] = row.content
                 row['content'] = copyinfo
-#            elif topictype == 3:  # discuss 
-#                commentinfo = self.mydb.getcommentInfo(row['relation_key'])
-#                row['content'] = commentinfo
             topic_data.append(row)
         self.response_success(topic_data)
+ 
