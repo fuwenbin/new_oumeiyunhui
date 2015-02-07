@@ -16,6 +16,13 @@ class PublishTopic(Processor):
         publisher_id = self.handler.get_argument('publisher_id',0)
         content = self.handler.get_argument('content',"")
         bytramsmitid = int(self.handler.get_argument('bytramsmitid',0))
+        if bytramsmitid is not 0:
+            try:
+                self.mydb.maptramsmit(bytramsmitid, publisher_id)
+            except:
+                self.response_fail("重复转发!!")
+                return
+        
         data = {}
         data['publisherid'] = publisher_id
         data['content'] = content
@@ -32,13 +39,5 @@ class PublishTopic(Processor):
         if len(re_list)>0:
             for reobj in re_list:
                 atstr = reobj.sub(r"@","")
-                self.mydb.mapconentkey(atstr, 0, insertid, ctime)
-        
-        if bytramsmitid is not 0:
-            try:
-                self.mydb.maptramsmit(bytramsmitid, publisher_id)
-            except:
-                self.response_fail("重复转发!!")
-                return
-        
+                self.mydb.mapconentkey(atstr, 0, insertid, ctime)        
         self.response_success(data)

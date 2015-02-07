@@ -77,16 +77,18 @@ def initLog(syslogpath):
     logger.setLevel(logging.NOTSET)
     
 def initRedisThread(host,port,db,pwd):
-    from db.redisclient import  RedisReading
-    return RedisReading(host,port,db,pwd)
+    from db.redisclient import  getDataFromRedis
+    return getDataFromRedis(host,port,db,pwd)
     
 def main():
     default_config,mysql_config,redis_config = initConfigParams()
     initLog(default_config[1])
     conn = initConnectToMysql(*mysql_config)
-    from db.redisclient import  RedisReading
-    thread = RedisReading(*(redis_config+(conn,)))
-#    thread.start()
+    
+    from db.redisclient import  getDataFromRedis
+    data = getDataFromRedis(*(redis_config+(conn,)))
+    data.startGetData()
+    
     server = httpserver.HTTPServer(MyApplication(conn,default_config))
     server.bind(default_config[0])
     server.start(1)

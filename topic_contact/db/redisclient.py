@@ -11,15 +11,16 @@ import time
 import json
 import re
 stop_server = False
-class RedisReading(threading.Thread):
+from utils.errors import Errors
+class getDataFromRedis(object):
     '''connect redis to get data !!!'''
     def __init__(self, host, port, db, pwd, mysqlconn):
-#        pool = redis.ConnectionPool(host=host, port=port, db=db,password = pwd)
-#        self.redis = redis.Redis(connection_pool = pool)
         self.redis = redis.Redis(host=host, port=port, db=db, password=pwd)
         self.conn = mysqlconn
-        threading.Thread.__init__(self)
-    def handleUserdata(self, jsondata):
+    def _handleUserdata(self):
+        '''等到用户数据'''
+        jsondata = self.redis.brpoplpush('social:openaccount', 'social:openaccount')
+        
         if jsondata is None:
             print "there are no user data !!!!"
             return
@@ -29,43 +30,58 @@ class RedisReading(threading.Thread):
         print jsondata
         self.conn.insert(sql_insert)
         self.redis.lrem('social:openaccount', jsondata)
-    def handleTracdesdata(self, jsondata):
-        
+    def _handleTracdesdata(self):
         """
-        1000*volume / leveage =  保证金
+                        得到交易数据
+                        
+        1000*volume / leverage =  保证金
+        
         symbol = 'USDCAD25'  
+        
         profit+storage = 盈利
+        
                     盈利率 =盈利/保证金
         """
+        jsondata = self.redis.blpop('social:trades')
+        
         if jsondata is None:
             print "there are no closeout data !!!!"
             return
-        map_data = json.loads(jsondata)
-        symbol = map_data['symbol']
-        closetime = map_data['close_time']
-        profit = map_data['profit']
-        storage = map_data['storage']
-        volume = map_data['volume']
+        print jsondata
+        map_data = json.loads(jsondata[1])
+        if not map_data.has_key('Usercode') :
+            return
+        usercode = map_data['Usercode']
+        if not usercode:
+            return
+        symbol = map_data['Trade']['symbol']
+#        closetime = map_data['Trade']['close_time']
+        profit = map_data['Trade']['profit']
+        storage = map_data['Trade']['storage']
+        volume = map_data['Trade']['volume']
         publisherid = 0
-        leveage = None
-        if re.search(symbol,'_'):
-            leveage = 100
-        else:
-            leveage = re.findall(r'\d+',symbol)
+        
+        leverage = re.search(r'\d+',symbol)
+        if leverage:
+            leverage = int(leverage.group(0))
             symbol = re.sub(r'\d+','',symbol)
-        
-        rate = (profit+storage)/(1000*volume/leveage)
-        
-        sql_str = "insert into closeout_topic(out_type,profit_point) values(%s,%s)"%(symbol,rate)
+        else:
+            leverage = 100
+        rate = (profit+storage)/(1000*volume/leverage)
+        rate = "%.2f"%rate
+        sql_str = "insert into closeout_topic(out_type,profit_point,usercode) values('%s',%s,%s)"%(symbol,rate,usercode)
         rowid = self.conn.insert(sql_str)
         sql_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,now(),%s)"
         self.conn.insert(sql_str,publisherid,'','',1,rowid,0)
     
-    def handleCopydata(self, jsondata):
+    def _handleCopydata(self):
+        '''得到copy数据'''
+        
+        jsondata = self.redis.brpop('social:copy')
         if jsondata is None:
             print "there are no copy data !!!!"
             return
-        map_data = json.loads(jsondata)
+        map_data = json.loads(jsondata[1])
         fromcopy = map_data['from']
         to = map_data['to']
         type_copy = map_data['type']
@@ -79,19 +95,30 @@ class RedisReading(threading.Thread):
                 is_public = 1
             slq_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,now(),%s)"
             self.conn.insert(slq_str,to,'',sm+1,2,follow_id,is_public)
+    def startGetData(self):
+        thread1 = RedisThread();
+        thread2 = RedisThread();
+        thread3 = RedisThread();
+        thread1.addWork(self._handleUserdata)
+        thread2.addWork(self._handleTracdesdata)
+        thread3.addWork(self._handleCopydata)
+        thread1.start()
+        thread2.start()
+        thread3.start()    
+        
+class RedisThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        
+    def addWork(self,workMethod):
+        self.work = workMethod;
+    
     def run(self):
         
         while True:
-            account_value = self.redis.rpoplpush('social:openaccount', 'social:openaccount')
-            trades_value = self.redis.rpop('social:trades')
-            copy_value = self.redis.rpop('social:copy')
-            
-            self.handleUserdata(account_value)
-            self.handleTracdesdata(trades_value)
-            self.handleCopydata(copy_value)
-            if account_value is None and trades_value is None and copy_value is None:
-                print "there no data in redis , i have to have a rest for one seconds!!!"
-                time.sleep(1)
-            
+            try:
+                self.work() 
+            except:
+                Errors.TraceErrorHandler(self)
     
     

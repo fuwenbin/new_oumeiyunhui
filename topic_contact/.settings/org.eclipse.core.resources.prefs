@@ -1,4 +1,4 @@
-#Sat Jan 31 15:41:43 CST 2015
+#Sat Feb 07 15:58:41 CST 2015
 eclipse.preferences.version=1
 encoding//constants/constant.py=utf-8
 encoding//db/mydb.py=utf-8
@@ -9,6 +9,7 @@ encoding//handler/deletetopic.py=utf8
 encoding//handler/followinglist.py=utf-8
 encoding//handler/getattionandfans.py=utf8
 encoding//handler/getinfomation.py=utf8
+encoding//handler/getmessage.py=utf8
 encoding//handler/getrelationinfos.py=utf-8
 encoding//handler/getremaindiscuss.py=utf8
 encoding//handler/hotinvester.py=utf-8

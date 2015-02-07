@@ -227,4 +227,37 @@ class MyDB():
                     FROM  fans_rel f
                     WHERE f.fans_id = %s limit %s,%s'''%(usercode,startindex,offset)
         return self.conn.query(sql_str)
+    
+    def getMessage(self,usercode,startindex,offset):
+        sql_sys_str='''
+            SELECT s.id,s.content,s.ctime,CASE 
+            (SELECT 1 FROM msg_visited_rel WHERE rel_id = s.id AND usercode=%s) WHEN 1 THEN 1 ELSE 0 END AS visited
+            FROM sys_message s WHERE s.id NOT IN(SELECT rel_id FROM msg_del_rel WHERE usercode=%s) order by id desc limit %s,%s
+            '''%(usercode,usercode,startindex,offset)
+        sql_user_str='''
+                SELECT id,content,ctime,visited,usercode FROM user_message WHERE usercode = %s AND state = 1 ORDER BY id DESC limit %s,%s
+                '''%(usercode,startindex,offset)
+        sys_msg = self.conn.query(sql_sys_str)
+        user_msg = self.conn.query(sql_user_str)
+        return sys_msg,user_msg
+    
+    def delSysMessage(self,usercode,msgId):
+        sql_str = """insert into msg_del_rel (rel_id,ctime,usercode) values(%s,now,%s)"""%(msgId,usercode)
+        return self.conn.insert(sql_str)
+    
+    def delUserMessage(self,usercode,msgId):
+        sql_str = """update user_message set state = 0 where id = %s and user usercode=%s"""%(msgId,usercode)
+        return self.conn.update(sql_str)
+    
+    def updateUserMessage(self,usercode,msgId):
+        sql_str = """update user_message set visited = 0 where id = % and usercode = %s"""%(msgId,usercode)
+        return self.conn.update(sql_str)
+    def updateSysMessage(self,usercode,msgId):
+        sql_str = """insert into msg_visited_rel (rel_id,ctime,usercode) values(%s,now(),%s)"""%(msgId,usercode)
+        return self.conn.insert(sql_str)
+            
+    
+        
+        
+        
         
