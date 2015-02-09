@@ -29,8 +29,18 @@ class MainHandler(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
     def post(self, command):
-        self.write("hello get method ! server is runging")
         print "requst get command:%s" % command
+        if command =='message':
+            handler = GetMessage(self)
+        else:
+            raise HTTPError(status_code=404)
+        if handler :
+            try:
+                handler.dowork()
+            except:
+                Errors.TraceErrorHandler(self)
+                self.write("")##返回空字符串,代表服务器报错
+        print "request post"   
         self.finish()
 #    @tornado.web.authenticated
     @tornado.web.asynchronous
@@ -65,8 +75,6 @@ class MainHandler(tornado.web.RequestHandler):
             handler = GetRemainDiscuss(self)
         elif command =='deletetopic':
             handler = DeleteTopic(self)
-        elif command == 'getmessage':
-            handler = GetMessage(self)
         else:
             raise HTTPError(status_code=404)
         if handler :

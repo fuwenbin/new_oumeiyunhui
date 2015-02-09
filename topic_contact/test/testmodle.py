@@ -110,6 +110,28 @@ def testgetFansInfoLists():
                     'type':0
                        }
     commucateModelTest('fflist',requestjsondata)
+    
+def testMessage():
+    headers = {"Content-type":"application/x-www-form-urlencoded",
+               "Accept":"text/plain",
+               "Cookie":"userCode = 1204"}
+    conn = httplib.HTTPConnection('127.0.0.1:5002')
+    param ={
+            'protocal':'messageInfo',
+            'arguments':{
+                         'user_code':23765,
+                         'start_index':0,
+                         'offset':10
+                     }
+            }
+    str_data = json.dumps(param)
+#    data = urllib.urlencode(param)
+    conn.request("POST","/communicate/api/message",str_data,headers)
+    response = conn.getresponse()
+    #    print "request:%s"%data
+    rdata = response.read()
+    print "response:%s"%rdata    
+
 class fortest(object):
     
     
@@ -123,15 +145,15 @@ class fortest(object):
         
 if __name__== '__main__':
 #    testpusblishtopic()
-#    testgetfansinfomation()
+    testgetfansinfomation()
 #    testdocomment()
 #    testdofans()
 #    testdotopicsupport()
 #    testgethotinvesterinfo()
 #    testtopicdetail()
 #    testgetrelationinfos()
-
-    testgetFansInfoLists()
+#    testgetFansInfoLists()
+#    testMessage()
 #    obj = fortest()
 #    obj.fortestDef('[','asdfasdf',']')
 

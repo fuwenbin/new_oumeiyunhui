@@ -212,6 +212,9 @@ class MyDB():
         return self.conn.get(sql_str).sum
     def getAttentionSums(self,usercode):
         pass
+    def isFan(self,fans_id,by_attention_id):
+        sql_str = '''select count(id) as sum from fans_rel where by_attention_id = %s and fans_id = %s'''%(by_attention_id,fans_id)
+        return self.conn.get(sql_str).sum
     def getFansList(self,startindex,offset,usercode):
         sql_str = '''SELECT f.fans_id AS userCode,
                     (SELECT COUNT(fans_id) FROM fans_rel WHERE by_attention_id=f.fans_id) AS fanCount,
@@ -230,12 +233,12 @@ class MyDB():
     
     def getMessage(self,usercode,startindex,offset):
         sql_sys_str='''
-            SELECT s.id,s.content,s.ctime,CASE 
+            SELECT s.id,s.content,DATE_FORMAT(s.ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime,CASE 
             (SELECT 1 FROM msg_visited_rel WHERE rel_id = s.id AND usercode=%s) WHEN 1 THEN 1 ELSE 0 END AS visited
             FROM sys_message s WHERE s.id NOT IN(SELECT rel_id FROM msg_del_rel WHERE usercode=%s) order by id desc limit %s,%s
             '''%(usercode,usercode,startindex,offset)
         sql_user_str='''
-                SELECT id,content,ctime,visited,usercode FROM user_message WHERE usercode = %s AND state = 1 ORDER BY id DESC limit %s,%s
+                SELECT id,content,DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime,visited,usercode FROM user_message WHERE usercode = %s AND state = 1 ORDER BY id DESC limit %s,%s
                 '''%(usercode,startindex,offset)
         sys_msg = self.conn.query(sql_sys_str)
         user_msg = self.conn.query(sql_user_str)
@@ -255,7 +258,18 @@ class MyDB():
     def updateSysMessage(self,usercode,msgId):
         sql_str = """insert into msg_visited_rel (rel_id,ctime,usercode) values(%s,now(),%s)"""%(msgId,usercode)
         return self.conn.insert(sql_str)
-            
+    
+    def getUnVisitedInfo(self,usercode):
+        sys_str = '''SELECT count(s.id) sys_unvisited_sum
+            FROM sys_message s WHERE s.id NOT IN
+            (SELECT rel_id FROM msg_del_rel WHERE usercode=%s) 
+            and s.id not in (select rel_id from msg_visited_rel where s.id = rel_id) '''%usercode
+        
+        user_str = '''select count(id) user_unvisited_sum from user_message 
+        where usercode = %s and state = 1 and visited = 1'''%usercode
+        
+        return self.conn.query(sys_str)[0].sys_unvisited_sum,self.conn.query(user_str)[0].user_unvisited_sum
+        
     
         
         
