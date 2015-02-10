@@ -92,7 +92,8 @@ def testdofans():
     "关注"
     requestJsondata = {
                        'usercode':8089,
-                       'by_attention_id':1206
+                       'by_attention_id':1206,
+                       'action':1
                        }
     commucateModelTest('doattention',requestJsondata)
     
@@ -145,9 +146,9 @@ class fortest(object):
         
 if __name__== '__main__':
 #    testpusblishtopic()
-    testgetfansinfomation()
+#    testgetfansinfomation()
 #    testdocomment()
-#    testdofans()
+    testdofans()
 #    testdotopicsupport()
 #    testgethotinvesterinfo()
 #    testtopicdetail()

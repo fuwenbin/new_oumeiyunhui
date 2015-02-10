@@ -164,8 +164,11 @@ class MyDB():
         except Exception:
             return 1
         return 0
-        
-        
+    
+    def cancleAttention(self,usercode,attentionid):
+        sql_str = '''delete from fans_rel where fans_id =%s and by_attention_id = %s'''%(usercode,attentionid)
+        return self.conn.execute_lastrowid(sql_str)    
+    
     def commentTopic(self,usercode,topicid,bycommentid,content,ctime):
         sql_str = '''insert into comment_info(comment_publisherid,by_topicid,by_comment_id,content,ctime) values(%s,%s,%s,'%s','%s')'''%(usercode,topicid,bycommentid,filterSqlSpecialWord(content),ctime)
         print sql_str
@@ -243,13 +246,26 @@ class MyDB():
         sys_msg = self.conn.query(sql_sys_str)
         user_msg = self.conn.query(sql_user_str)
         return sys_msg,user_msg
+    def getSysMessage(self,userCode,startIndex,offset):
+        sql_sys_str='''
+            SELECT s.id,s.content,DATE_FORMAT(s.ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime,CASE 
+            (SELECT 1 FROM msg_visited_rel WHERE rel_id = s.id AND usercode=%s) WHEN 1 THEN 1 ELSE 0 END AS visited
+            FROM sys_message s WHERE s.id NOT IN(SELECT rel_id FROM msg_del_rel WHERE usercode=%s) order by id desc limit %s,%s
+            '''%(userCode,userCode,startIndex,offset)
+        return self.conn.query(sql_sys_str)
+    
+    def getUserMessage(self,userCode,startIndex,offset):
+        sql_user_str='''
+                SELECT id,content,DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') ctime,visited,usercode FROM user_message WHERE usercode = %s AND state = 1 ORDER BY id DESC limit %s,%s
+                '''%(userCode,startIndex,offset)
+        return self.conn.query(sql_user_str)
     
     def delSysMessage(self,usercode,msgId):
         sql_str = """insert into msg_del_rel (rel_id,ctime,usercode) values(%s,now,%s)"""%(msgId,usercode)
         return self.conn.insert(sql_str)
     
     def delUserMessage(self,usercode,msgId):
-        sql_str = """update user_message set state = 0 where id = %s and user usercode=%s"""%(msgId,usercode)
+        sql_str = """update user_message set state = 0 where id = %s and usercode=%s"""%(msgId,usercode)
         return self.conn.update(sql_str)
     
     def updateUserMessage(self,usercode,msgId):
@@ -266,7 +282,7 @@ class MyDB():
             and s.id not in (select rel_id from msg_visited_rel where s.id = rel_id) '''%usercode
         
         user_str = '''select count(id) user_unvisited_sum from user_message 
-        where usercode = %s and state = 1 and visited = 1'''%usercode
+        where usercode = %s and state = 1 and visited = 0'''%usercode
         
         return self.conn.query(sys_str)[0].sys_unvisited_sum,self.conn.query(user_str)[0].user_unvisited_sum
         

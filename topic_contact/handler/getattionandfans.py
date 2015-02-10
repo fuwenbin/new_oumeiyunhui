@@ -10,13 +10,18 @@ class GetAttentionAndFansInfo(Processor):
     '''获取关注和粉丝数量'''
     
     def dowork(self):
+        usercode = 0
+        current_code = ''
         try:
             usercode = self.handler.get_argument('usercode',0)
-            current_code = self.handler.get_cookie('userCode',0)
+            current_code = self.handler.get_cookie('userCode','')
         except:
             Errors.TraceErrorHandler(self)
             self.response_fail("arguments errors")
         data = self.mydb.getfansInfos(usercode)
         isfans = self.mydb.isFan(current_code,usercode)
         data['is_by_attention'] = isfans
+        sys_unvisited_sum,user_unvisited_sum = self.mydb.getUnVisitedInfo(usercode)
+        self.handler.set_cookie('sys_unvisited_sum',str(sys_unvisited_sum))
+        self.handler.set_cookie('user_unvisited_sum',str(user_unvisited_sum))
         self.response_success(data)
