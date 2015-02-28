@@ -28,8 +28,8 @@ class MyDB():
         
     
     def publishtopic(self,params):
-        sql_str = """insert into topic_communicate_info(publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public)
-        values(%(publisherid)s,%(publishername)s,%(content)s,%(topictype)s,%(relationkey)s,%(ctime)s,%(ispublic)s)
+        sql_str = """insert into topic_communicate_info(publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public,tramsmit_id)
+        values(%(publisherid)s,%(publishername)s,%(content)s,%(topictype)s,%(relationkey)s,%(ctime)s,%(ispublic)s,%(tramsmit_id)s)
         """
         return self.conn.insert(sql_str,
                                 publisherid = params['publisherid'],
@@ -38,14 +38,15 @@ class MyDB():
                                 topictype = params['topictype'],
                                 relationkey = params['relationkey'],
                                 ctime = params['ctime'],
-                                ispublic = params['ispublic']
+                                ispublic = params['ispublic'],
+                                tramsmit_id = params['tramsmit_id']
                                 )
         
     def getPublicTopic(self,startindex=0,offset=10):
-        
-        sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
+        '''获取public 话题'''
+        sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,tramsmit_id,
             DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime ,
-            (select count(by_topicid) from tramsmit_rel where by_topicid = w.topicid) as tramsmit_sum,
+            (select count(topicid) from topic_communicate_info where tramsmit_id = w.topicid) as tramsmit_sum,
             (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
             (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
             from topic_communicate_info w where is_public = 1 and state = 1 order by topicid desc limit %s,%s"""
@@ -54,9 +55,10 @@ class MyDB():
         return results
     
     def getRelationInfo(self,usercode,startindex,offset=10):
-        sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
+        '''获取与某人相关的话题列表'''
+        sql_str = """select topicid,publisher_id,publisher_name,content,topic_type,relation_key,tramsmit_id,
             DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime ,
-            (select count(by_topicid) from tramsmit_rel where by_topicid = w.topicid) as tramsmit_sum,
+            (select count(topicid) from topic_communicate_info where tramsmit_id = w.topicid) as tramsmit_sum,
             (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
             (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
             from topic_communicate_info w where publisher_id = %s and state = 1 order by topicid desc limit %s,%s
@@ -78,7 +80,7 @@ class MyDB():
     
     def getTopicTramsmitSum(self,topicid):
         '''获取转发数量'''
-        sql_str = "select count(by_topicid) sum from tramsmit_rel where by_topicid = %s"
+        sql_str = "select count(topicid) from topic_communicate_info where tramsmit_id = %s"%topicid
         entity = self.conn.get(sql_str,topicid)
         return entity.sum
     
@@ -142,14 +144,14 @@ class MyDB():
         
     def getTopicInfo(self,topicid):
         
-        sql_str = '''select topicid,publisher_id,publisher_name,content,topic_type,relation_key,
+        sql_str = '''select w.topicid,w.publisher_id,w.publisher_name,w.content,w.topic_type,w.relation_key,w.tramsmit_id,
         DATE_FORMAT(ctime,'%%Y-%%m-%%d %%H:%%i:%%s') as ctime, 
-        (select count(by_topicid) from tramsmit_rel where by_topicid = %s) as tramsmit_sum,
-        (select count(supporter_id) from topic_support_rel where by_topicid = %s) as support_sum,
-        (select count(comment_id) from comment_info where by_topicid = %s) as comment_sum
-        from topic_communicate_info where topicid = %s and state = 1'''
-        return self.conn.get(sql_str,topicid,topicid,topicid,topicid)
-        
+        (select count(topicid) from topic_communicate_info where tramsmit_id = w.topicid) as tramsmit_sum,
+        (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
+        (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
+        from topic_communicate_info w where topicid = %s and state = 1'''
+        return self.conn.get(sql_str,topicid)
+    
     def getfansInfos(self,usercode):
         sql_str = '''select count(fans_id) sum from fans_rel where fans_id = %s'''
         attentionsum = self.conn.get(sql_str,usercode)

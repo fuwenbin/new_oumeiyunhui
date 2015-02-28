@@ -72,8 +72,9 @@ class GetMessage(Processor):
         userCode = self.handler.get_cookie('userCode',0)
         typeS = arguments.get('type')
         offset = arguments.get('offset')
+        data = {}
         if typeS=='sys':
-            self._getMoreSysMessage()
+            data = self.mydb.getSysMessage(userCode,startIndex,offset)
         else:
-            self._getMoreUserMessage()
-            
+            data = self.mydb.getUserMessage(userCode, startIndex, offset)
+        self.response_success(data)

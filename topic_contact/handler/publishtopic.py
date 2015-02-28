@@ -16,15 +16,17 @@ class PublishTopic(Processor):
         publisher_id = self.handler.get_argument('publisher_id',0)
         content = self.handler.get_argument('content',"")
         bytramsmitid = int(self.handler.get_argument('bytramsmitid',0))
-        if bytramsmitid is not 0:
-            try:
-                self.mydb.maptramsmit(bytramsmitid, publisher_id)
-            except:
-                self.response_fail("重复转发!!")
-                return
-        
+#        if bytramsmitid:
+#            try:
+#                self.mydb.maptramsmit(bytramsmitid, publisher_id)
+#            except:
+#                self.response_fail("重复转发!!")
+#                return
+#        
         data = {}
         data['publisherid'] = publisher_id
+        if bytramsmitid:
+            pass
         data['content'] = content
         data['topictype'] = 0
         data['relationkey'] = 0
@@ -32,6 +34,7 @@ class PublishTopic(Processor):
         data['ispublic']  = 0
         ctime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
         data['ctime'] = ctime
+        data['tramsmit_id'] = bytramsmitid
         insertid = self.mydb.publishtopic(data)
         data['ptime'] = 1
         data['topicid'] = insertid

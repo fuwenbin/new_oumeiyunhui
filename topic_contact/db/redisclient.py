@@ -59,7 +59,7 @@ class getDataFromRedis(object):
         profit = map_data['Trade']['profit']
         storage = map_data['Trade']['storage']
         volume = map_data['Trade']['volume']
-        publisherid = 0
+        publisherid = usercode
         
         leverage = re.search(r'\d+',symbol)
         if leverage:

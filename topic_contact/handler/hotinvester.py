@@ -17,20 +17,25 @@ class HotInvester(Processor):
         topic_data = []
         for row in topicpubliclist:
             row['ptime'] = int(time.time()) - int(time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S")))
-            topictype = row['topic_type']
-            if topictype == 0:
-                row['title'] = row.publisher_name
+            topicType = row['topic_type']
+            if topicType == 0:
+#                row['title'] = row.publisher_name
                 pass
-            elif topictype ==1: # closeout
+            elif topicType ==1: # closeout
                 
                 closeoutinfo = self.mydb.getcloseoutTopicInfo(row['relation_key'])
 #                row['title'] = row.publisher_name + " " + Topic_Constants.closeout_ch + " " + closeoutinfo.out_type
-                row['content'] = closeoutinfo
-            elif topictype == 2: # copy 
+                row['relation'] = closeoutinfo
+            elif topicType == 2: # copy 
                 copyinfo = self.mydb.getcopyTopicInfo(row['relation_key'])
 #                row['title'] = row.publisher_name + "　" + Topic_Constants.copy_ing + " " + copyinfo.byname
                 copyinfo['be_follow_sum'] = row.content
-                row['content'] = copyinfo
+                row['relation'] = copyinfo
+            elif topicType == 3:  #tramsmit 
+                tramsmit_id = row.tramsmit_id
+                byTramsmit_topicinfo = self.mydb.getTopicInfo(tramsmit_id)   
+                byTramsmit_topicinfo['ptime'] = time.time()-time.mktime(time.strptime(byTramsmit_topicinfo['ctime'], "%Y-%m-%d %H:%M:%S"))
+                row['relation'] = byTramsmit_topicinfo
             topic_data.append(row)
         self.response_success(topic_data)
         

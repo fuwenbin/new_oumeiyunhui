@@ -14,7 +14,7 @@ class GetAttentionAndFansInfo(Processor):
         current_code = ''
         try:
             usercode = self.handler.get_argument('usercode',0)
-            current_code = self.handler.get_cookie('userCode','')
+            current_code = self.handler.get_argument('personal_usercode','')
         except:
             Errors.TraceErrorHandler(self)
             self.response_fail("arguments errors")
