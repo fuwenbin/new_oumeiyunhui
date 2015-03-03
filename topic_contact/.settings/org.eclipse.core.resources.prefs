@@ -1,6 +1,7 @@
-#Sat Feb 07 15:58:41 CST 2015
+#Tue Mar 03 14:15:14 CST 2015
 eclipse.preferences.version=1
 encoding//constants/constant.py=utf-8
+encoding//constants/sensitive.py=utf8
 encoding//db/mydb.py=utf-8
 encoding//db/redisclient.py=utf8
 encoding//handler/attentionsomebody.py=utf-8
@@ -17,6 +18,7 @@ encoding//handler/mainhandler.py=utf-8
 encoding//handler/publishtopic.py=utf-8
 encoding//handler/support.py=utf8
 encoding//handler/topicdetail.py=utf-8
+encoding//test/test_sensitive.py=utf-8
 encoding//test/testmodle.py=utf8
 encoding//utils/filters.py=utf-8
 encoding/main.py=utf-8

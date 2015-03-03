@@ -5,17 +5,19 @@ Created on 2015-1-24
 @author: fuwenbin
 '''
 import re
-
-specialSqlWords = '''[\,\<\.\>\/\?;:\'\"\[\{\]\}\\\\\|\`\~\!@#\$\%\^\&\*\(\)\-\=\+\000\r\n\t]'''   
-
+from constants.sensitive import sensitive_words
 
 def filterSqlSpecialWord(words):
+    specialSqlWords = '''[\,\<\.\>\/\?;:\'\"\[\{\]\}\\\\\|\`\~\!@#\$\%\^\&\*\(\)\-\=\+\000\r\n\t]'''   
     regex = re.compile(specialSqlWords)
     
     words = regex.sub(strB2Q,words)
-    print words
     return words
-    
+
+def filterSensitive(content):
+    partten = re.compile(sensitive_words)
+    return partten.sub(u'*',content)
+
 def strB2Q(matched):
     ustring = matched.group(0)
     rstring = ""

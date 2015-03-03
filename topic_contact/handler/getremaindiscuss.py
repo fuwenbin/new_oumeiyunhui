@@ -6,6 +6,7 @@ Created on 2015-1-31
 '''
 from processor import Processor
 import time
+from utils.filters import filterSensitive
 class GetRemainDiscuss(Processor):
     
     def dowork(self):
@@ -18,6 +19,7 @@ class GetRemainDiscuss(Processor):
         level2_comments = self.mydb.getTopicOfCommentLevel2(byCommentId,startId)
         for discuss in level2_comments:
             discuss['ptime']= time.time() - time.mktime(time.strptime(discuss['ctime'], "%Y-%m-%d %H:%M:%S")) 
+            discuss['content'] = filterSensitive(discuss['content'])
             discuss_list.append(discuss)
         self.response_success(discuss_list)
         

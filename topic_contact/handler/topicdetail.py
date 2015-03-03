@@ -7,7 +7,7 @@ Created on 2015-1-6
 '''
 from processor import Processor
 import time
-from constants.constant import Topic_Constants
+from utils.filters import filterSensitive
 class TopicDetail(Processor):
     '''获取话题详情'''
     def dowork(self):
@@ -26,10 +26,12 @@ class TopicDetail(Processor):
     
     def getTheTopicInfo(self,topicid):
         '''获取topic基本信息'''
-     
+        
         row_entity = self.mydb.getTopicInfo(topicid)
         if not row_entity:
             return None
+        if row_entity['content']:
+            row_entity['content'] = filterSensitive(row_entity['content'])
         if row_entity.topic_type == 3: # 转发 
             byTramsmit_topicinfo = self.mydb.getTopicInfo(row_entity.tramsmit_id)   
             byTramsmit_topicinfo['ptime'] = time.time()-time.mktime(time.strptime(byTramsmit_topicinfo['ctime'], "%Y-%m-%d %H:%M:%S"))
@@ -44,6 +46,7 @@ class TopicDetail(Processor):
         level1_comments = self.mydb.getTopicOfCommentLevel1(topicid,startindex)
         for comment in level1_comments:
             comment['ptime'] = time.time() - time.mktime(time.strptime(comment['ctime'], "%Y-%m-%d %H:%M:%S"))
+            comment['content']= filterSensitive(comment['content'])
             discusslist = self.getCommentLeve2(comment.comment_id,0)
             comment['discuss_list'] = discusslist
             comments_list.append(comment)
@@ -54,6 +57,7 @@ class TopicDetail(Processor):
         level2_comments = self.mydb.getTopicOfCommentLevel2(byCommentid,startindex)
         for discuss in level2_comments:
             discuss['ptime']= time.time() - time.mktime(time.strptime(discuss['ctime'], "%Y-%m-%d %H:%M:%S")) 
+            discuss['content']= filterSensitive(discuss['content'])
             discuss_list.append(discuss)
         return discuss_list
         

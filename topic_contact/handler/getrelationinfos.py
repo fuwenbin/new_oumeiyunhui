@@ -8,6 +8,7 @@ Created on 2015-1-7
 from processor import Processor
 from constants.constant import Topic_Constants
 import time
+from utils.filters import filterSensitive
 class GetRelationInfos(Processor):
     '''获取与某相关的投资信息'''
     def dowork(self):
@@ -22,6 +23,8 @@ class GetRelationInfos(Processor):
         for row in rows:
             row['ptime'] =  time.time()-time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S"))
             topicType = row['topic_type']
+            if row['content']:
+                row['content'] = filterSensitive(row['content'])
             if topicType == 0:
                 row['title'] = row.publisher_name
                 pass

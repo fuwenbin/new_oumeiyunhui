@@ -6,7 +6,7 @@ Created on 2015-1-6
 '''
 from processor import Processor
 import time
-from constants.constant import Topic_Constants
+from utils.filters import filterSensitive
 class HotInvester(Processor):
     
     def dowork(self):
@@ -18,6 +18,8 @@ class HotInvester(Processor):
         for row in topicpubliclist:
             row['ptime'] = int(time.time()) - int(time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S")))
             topicType = row['topic_type']
+            if row['content']:
+                row['content'] = filterSensitive(row['content'])
             if topicType == 0:
 #                row['title'] = row.publisher_name
                 pass
