@@ -18,7 +18,7 @@ class GetFansSum(Processor):
         for usercode in usercodes:
             n = {}
             sum = self.mydb.getFansSum(usercode)
-            n['user_code'] = usercode
+            n['user_code'] = str(usercode)
             n['fans_count'] = sum
             m.append(n)
         self.response_success(m)
