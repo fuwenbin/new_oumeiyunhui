@@ -32,11 +32,11 @@ class MyDB():
         values(%(publisherid)s,%(publishername)s,%(content)s,%(topictype)s,%(relationkey)s,%(ctime)s,%(ispublic)s,%(tramsmit_id)s)
         """
         return self.conn.insert(sql_str,
-                                publisherid = params['publisherid'],
-                                publishername = params['publishername'],
+                                publisherid = params['publisher_id'],
+                                publishername = params['publisher_name'],
                                 content = filterSqlSpecialWord(params['content']),
-                                topictype = params['topictype'],
-                                relationkey = params['relationkey'],
+                                topictype = params['topic_type'],
+                                relationkey = params['relation_key'],
                                 ctime = params['ctime'],
                                 ispublic = params['ispublic'],
                                 tramsmit_id = params['tramsmit_id']
@@ -201,8 +201,8 @@ class MyDB():
     
     def deletecomment(self,usercode,commentid):
         
-        sql_str = '''update table comment_info set state = 0 where comment_publisherid = %s and comment_id = %s'''
-        return self.conn.update(sql_str,usercode,commentid)        
+        sql_str = '''update comment_info set state = 0 where comment_publisherid = %s and comment_id = %s; '''%(usercode,commentid)
+        return self.conn.update(sql_str)        
     
     def mapconentkey(self,atstr,typekey,relation_key,ctime):
         sql_str = '''insert into atname_rel(atstr,type,relation_key,ctime) values('%s',%s,%s,%s)'''

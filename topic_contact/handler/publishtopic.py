@@ -16,28 +16,25 @@ class PublishTopic(Processor):
         publisher_id = self.handler.get_argument('publisher_id',0)
         content = self.handler.get_argument('content',"")
         bytramsmitid = int(self.handler.get_argument('bytramsmitid',0))
-#        if bytramsmitid:
-#            try:
-#                self.mydb.maptramsmit(bytramsmitid, publisher_id)
-#            except:
-#                self.response_fail("重复转发!!")
-#                return
-#        
+        
         data = {}
-        data['publisherid'] = publisher_id
+        data['publisher_id'] = publisher_id
         if bytramsmitid:
             pass
         data['content'] = content
-        data['topictype'] = 0
-        data['relationkey'] = 0
-        data['publishername'] = self.mydb.getusername(publisher_id)
-        data['ispublic']  = 0
+        data['topic_type'] = 0
+        data['relation_key'] = 0
+        data['publisher_name'] = self.mydb.getusername(publisher_id)
         ctime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
         data['ctime'] = ctime
         data['tramsmit_id'] = bytramsmitid
+        data['ispublic'] = 0
         insertid = self.mydb.publishtopic(data)
         data['ptime'] = 1
         data['topicid'] = insertid
+        data['comment_sum']=0
+        data['support_sum']=0
+        data['tramsmit_sum']=0
         re_list = re.findall(r'@\S ',content)
         if len(re_list)>0:
             for reobj in re_list:
