@@ -13,7 +13,7 @@ class HotInvester(Processor):
         '''获取热门投资列表'''
         
         startindex = self.handler.get_argument('startindex',0)
-        topicpubliclist = self.mydb.getPublicTopic(int(startindex),5)
+        topicpubliclist = self.mydb.getPublicTopic(int(startindex))
         topic_data = []
         for row in topicpubliclist:
             row['ptime'] = int(time.time()) - int(time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S")))
