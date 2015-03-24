@@ -95,6 +95,21 @@ class getDataFromRedis(object):
                 is_public = 1
             slq_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,now(),%s)"
             self.conn.insert(slq_str,to,'',sm+1,2,follow_id,is_public)
+            
+    def _handeNitification(self):
+        '''处理 消息机制'''
+         
+        jsondata = self.redis.brpop('social:notification')
+        if jsondata is None:
+            print "there are no copy data !!!!"
+            return
+        
+        map_data = json.loads(jsondata[1])
+        
+        sql_str = "insert into sys_message(content,ctime,state,usercode) values(%s,%s,%s,%s)"
+        
+        
+    
     def startGetData(self):
         thread1 = RedisThread();
         thread2 = RedisThread();

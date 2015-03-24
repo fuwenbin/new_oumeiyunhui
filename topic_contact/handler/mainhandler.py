@@ -19,8 +19,10 @@ from getremaindiscuss import GetRemainDiscuss
 from deletetopic import DeleteTopic
 from support import Support
 from getmessage import GetMessage
+from getsymbolinfo import GetSymboInfo
 from utils.errors import Errors
 from tornado.web import HTTPError
+
 import logging
 
 class MainHandler(tornado.web.RequestHandler):
@@ -42,7 +44,6 @@ class MainHandler(tornado.web.RequestHandler):
                 self.write("")##返回空字符串,代表服务器报错
         print "request post"   
         self.finish()
-#    @tornado.web.authenticated
     @tornado.web.asynchronous
     def get(self, command):
         print "command is : %s"%command
@@ -75,6 +76,8 @@ class MainHandler(tornado.web.RequestHandler):
             handler = GetRemainDiscuss(self)
         elif command =='deletetopic':
             handler = DeleteTopic(self)
+        elif command == 'getsymbolinfo':
+            handler = GetSymboInfo(self)
         else:
             raise HTTPError(status_code=404)
         if handler :
@@ -82,7 +85,7 @@ class MainHandler(tornado.web.RequestHandler):
                 handler.dowork()
             except:
                 Errors.TraceErrorHandler(self)
-                self.write("")##返回空字符串,代表服务器报错
+                self.write("")    ##返回空字符串,代表服务器报错
         print "request post"
         self.finish()
     

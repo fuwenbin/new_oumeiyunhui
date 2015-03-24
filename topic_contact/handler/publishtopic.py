@@ -35,9 +35,9 @@ class PublishTopic(Processor):
         data['comment_sum']=0
         data['support_sum']=0
         data['tramsmit_sum']=0
-        re_list = re.findall(r'@\S ',content)
+        re_list = re.findall(r'$\S ',content)
         if len(re_list)>0:
             for reobj in re_list:
-                atstr = reobj.sub(r"@","")
+                atstr = reobj.sub(r"$","")
                 self.mydb.mapconentkey(atstr, 0, insertid, ctime)        
         self.response_success(data)

@@ -207,7 +207,20 @@ class MyDB():
     def mapconentkey(self,atstr,typekey,relation_key,ctime):
         sql_str = '''insert into atname_rel(atstr,type,relation_key,ctime) values('%s',%s,%s,%s)'''
         return self.conn.insert(sql_str,atstr,typekey,relation_key,ctime)
+    
+    def getSymbolInfo(self,symbol,startIndex,offset=5):
         
+        sql_str = '''select topicid,publisher_id,publisher_name,content,topic_type,relation_key,tramsmit_id,
+            DATE_FORMAT(ctime,'%%%%Y-%%%%m-%%%%d %%%%H:%%%%i:%%%%s') as ctime ,
+            (select count(topicid) from topic_communicate_info where tramsmit_id = w.topicid) as tramsmit_sum,
+            (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
+            (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
+            from topic_communicate_info w where topicid IN 
+        (SELECT relation_key FROM atname_rel WHERE atstr = UPPER('%s')) 
+        order by topicid desc limit %s,%s'''%(symbol,startIndex,offset)
+    
+        return self.conn.query(sql_str)
+    
     def maptramsmit(self,bytramsmittopicid,who):
         sql_str = '''insert into tramsmit_rel (by_topicid,who,ctime) values(%s,%s,now())'''
         return self.conn.insert(sql_str,bytramsmittopicid,who)
@@ -215,8 +228,10 @@ class MyDB():
     def getFansSum(self,usercode):
         sql_str = '''select count(id) as sum from fans_rel where by_attention_id = %s'''%usercode
         return self.conn.get(sql_str).sum
+    
     def getAttentionSums(self,usercode):
         pass
+    
     def isFan(self,fans_id,by_attention_id):
         sql_str = '''select count(id) as sum from fans_rel where by_attention_id = %s and fans_id = %s'''%(by_attention_id,fans_id)
         return self.conn.get(sql_str).sum
