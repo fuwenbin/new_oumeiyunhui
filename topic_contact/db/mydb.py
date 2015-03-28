@@ -25,7 +25,13 @@ class MyDB():
     def getusername(self,usercode):
         
         return self.conn.get("select username from user_info where userid = %s",usercode).username
-        
+    
+    def getUserByName(self,name):
+        entity =  self.conn.get("select userid from user_info where username = %s",name)
+        if entity:
+            return entity.userid
+        else:
+            return 0
     
     def publishtopic(self,params):
         sql_str = """insert into topic_communicate_info(publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public,tramsmit_id)
@@ -204,10 +210,16 @@ class MyDB():
         sql_str = '''update comment_info set state = 0 where comment_publisherid = %s and comment_id = %s; '''%(usercode,commentid)
         return self.conn.update(sql_str)        
     
-    def mapconentkey(self,atstr,typekey,relation_key,ctime):
-        sql_str = '''insert into atname_rel(atstr,type,relation_key,ctime) values('%s',%s,%s,%s)'''
-        return self.conn.insert(sql_str,atstr,typekey,relation_key,ctime)
+    def mapconentkey(self,atstr,typekey,relation_key,ctime,userCode=0):
+        sql_str = '''insert into atname_rel(atstr,type,relation_key,relation_code,ctime) values('%s','%s',%s,%s,'%s')'''%(atstr,typekey,relation_key,userCode,ctime)
+        return self.conn.insert(sql_str)
     
+    def getContentKeys(self,content_id):
+        sql_str = '''select atstr,relation_code
+        from atname_rel where relation_key = %s'''%content_id
+        
+        return self.conn.query(sql_str)
+        
     def getSymbolInfo(self,symbol,startIndex,offset=5):
         
         sql_str = '''select topicid,publisher_id,publisher_name,content,topic_type,relation_key,tramsmit_id,

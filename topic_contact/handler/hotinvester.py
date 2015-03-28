@@ -6,7 +6,7 @@ Created on 2015-1-6
 '''
 from processor import Processor
 import time
-from utils.filters import filterSensitive
+from utils.filters import filterSensitive,getKeyVal
 class HotInvester(Processor):
     
     def dowork(self):
@@ -14,15 +14,20 @@ class HotInvester(Processor):
         
         startindex = self.handler.get_argument('startindex',0)
         topicpubliclist = self.mydb.getPublicTopic(int(startindex))
+        all_data = {}
         topic_data = []
+        mapKeyVal = {}
         for row in topicpubliclist:
             row['ptime'] = int(time.time()) - int(time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S")))
             topicType = row['topic_type']
+            
             if row['content']:
                 row['content'] = filterSensitive(row['content'])
             if topicType == 0:
 #                row['title'] = row.publisher_name
-                pass
+                entities  = self.mydb.getContentKeys(row['topicid'])
+                if entities:
+                    mapKeyVal = dict(mapKeyVal,**getKeyVal(entities))
             elif topicType ==1: # closeout
                 
                 closeoutinfo = self.mydb.getcloseoutTopicInfo(row['relation_key'])
@@ -39,6 +44,8 @@ class HotInvester(Processor):
                 byTramsmit_topicinfo['ptime'] = time.time()-time.mktime(time.strptime(byTramsmit_topicinfo['ctime'], "%Y-%m-%d %H:%M:%S"))
                 row['relation'] = byTramsmit_topicinfo
             topic_data.append(row)
-        self.response_success(topic_data)
+            all_data['list'] = topic_data
+            all_data['mapKeyVal'] = mapKeyVal
+        self.response_success(all_data)
         
         

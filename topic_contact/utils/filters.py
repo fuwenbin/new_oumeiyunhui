@@ -18,6 +18,13 @@ def filterSensitive(content):
     partten = re.compile(sensitive_words)
     return partten.sub(u'*',content)
 
+def getKeyVal(rows):
+    
+    atKeyVal = {}
+    for dx in rows:
+        atKeyVal[dx.atstr] = dx.relation_code
+    return atKeyVal
+
 def strB2Q(matched):
     ustring = matched.group(0)
     rstring = ""
