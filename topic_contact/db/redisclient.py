@@ -10,6 +10,7 @@ import threading
 import time
 import json
 import re
+import logging
 stop_server = False
 from utils.errors import Errors
 class getDataFromRedis(object):
@@ -21,6 +22,7 @@ class getDataFromRedis(object):
         '''等到用户数据'''
         jsondata = self.redis.brpoplpush('social:openaccount', 'social:openaccount')
         
+        logging.info("user_data:"+jsondata)
         if jsondata is None:
             print "there are no user data !!!!"
             return
@@ -43,7 +45,7 @@ class getDataFromRedis(object):
                     盈利率 =盈利/保证金
         """
         jsondata = self.redis.blpop('social:trades')
-        
+        logging.info("trades_data:"+jsondata)
         if jsondata is None:
             print "there are no closeout data !!!!"
             return
@@ -71,13 +73,15 @@ class getDataFromRedis(object):
         rate = "%.2f"%rate
         sql_str = "insert into closeout_topic(out_type,profit_point,usercode) values('%s',%s,%s)"%(symbol,rate,usercode)
         rowid = self.conn.insert(sql_str)
-        sql_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,now(),%s)"
-        self.conn.insert(sql_str,publisherid,'','',1,rowid,0)
+        ctime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
+        sql_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,'%s',%s)"
+        self.conn.insert(sql_str,publisherid,'','',1,rowid,ctime,0)
     
     def _handleCopydata(self):
         '''得到copy数据'''
         
         jsondata = self.redis.brpop('social:copy')
+        logging.info("copy_data:"+jsondata)
         if jsondata is None:
             print "there are no copy data !!!!"
             return
@@ -93,13 +97,15 @@ class getDataFromRedis(object):
             is_public = 0
             if (sm+1)%50==0:
                 is_public = 1
-            slq_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,now(),%s)"
-            self.conn.insert(slq_str,to,'',sm+1,2,follow_id,is_public)
+            ctime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
+            slq_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,'%s',%s)"
+            self.conn.insert(slq_str,to,'',sm+1,2,follow_id,ctime,is_public)
             
-    def _handeNitification(self):
+    def _handeNotification(self):
         '''处理 消息机制'''
          
         jsondata = self.redis.brpop('social:notification')
+        logging.info("notify_data:"+jsondata)
         if jsondata is None:
             print "there are no copy data !!!!"
             return
