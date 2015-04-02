@@ -23,6 +23,8 @@ class PublishTopic(Processor):
             pass
         data['content'] = content
         data['topic_type'] = 0
+        if bytramsmitid:
+            data['topic_type'] = 3
         data['relation_key'] = 0
         data['publisher_name'] = self.mydb.getusername(publisher_id)
         ctime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))

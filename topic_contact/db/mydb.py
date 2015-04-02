@@ -40,7 +40,8 @@ class MyDB():
         return self.conn.insert(sql_str,
                                 publisherid = params['publisher_id'],
                                 publishername = params['publisher_name'],
-                                content = filterSqlSpecialWord(params['content']),
+#                                 content = filterSqlSpecialWord(params['content']),
+                                content = params['content'],
                                 topictype = params['topic_type'],
                                 relationkey = params['relation_key'],
                                 ctime = params['ctime'],
@@ -67,10 +68,16 @@ class MyDB():
             (select count(topicid) from topic_communicate_info where tramsmit_id = w.topicid) as tramsmit_sum,
             (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
             (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
-            from topic_communicate_info w where publisher_id = %s and state = 1 order by topicid desc limit %s,%s
-        """%(usercode,startindex,offset)
+            from topic_communicate_info w where (publisher_id = %s or 
+            publisher_id in (SELECT by_attention_id FROM fans_rel WHERE fans_id = %s) or
+            publisher_id in (select by_follow_id from follow_topic where be_follow_id = %s)
+            )
+            and
+            state = 1 order by topicid desc limit %s,%s
+            """%(usercode,usercode,usercode,startindex,offset)
         return self.conn.query(sql_str)
     
+            
     def getTopicSupportSum(self,topicid):
         
         sql_str = "select count(supporter_id) sum from support_rel where by_topicid = %s"
@@ -164,6 +171,8 @@ class MyDB():
         sql_str = '''select count(fans_id) sum from fans_rel where by_attention_id = %s'''
         fanssum = self.conn.get(sql_str,usercode)
         return dict(attention_sum = attentionsum.sum,fans_sum=fanssum.sum)
+    
+    
     
     def attentionOne(self,usercode,attentionid):
         try:
