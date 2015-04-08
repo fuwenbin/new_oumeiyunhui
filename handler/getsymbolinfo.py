@@ -20,21 +20,20 @@ class GetSymboInfo(Processor):
 			row['ptime'] = int(time.time()) - int(time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S")))
 			topicType = row['topic_type']
 			if row['content']:
-			    row['content'] = filterSensitive(row['content'])
+				row['content'] = filterSensitive(row['content'])
 			if topicType == 0:
-			    pass
+				pass
 			elif topicType ==1: # closeout
-			     
-			    closeoutinfo = self.mydb.getcloseoutTopicInfo(row['relation_key'])
-			    row['relation'] = closeoutinfo
+				closeoutinfo = self.mydb.getcloseoutTopicInfo(row['relation_key'])
+				row['relation'] = closeoutinfo
 			elif topicType == 2: # copy 
-			    copyinfo = self.mydb.getcopyTopicInfo(row['relation_key'])
-			    copyinfo['be_follow_sum'] = row.content
-			    row['relation'] = copyinfo
+				copyinfo = self.mydb.getcopyTopicInfo(row['relation_key'])
+				copyinfo['be_follow_sum'] = row.content
+				row['relation'] = copyinfo
 			elif topicType == 3:  #tramsmit 
-			    tramsmit_id = row.tramsmit_id
-			    byTramsmit_topicinfo = self.mydb.getTopicInfo(tramsmit_id)   
-			    byTramsmit_topicinfo['ptime'] = time.time()-time.mktime(time.strptime(byTramsmit_topicinfo['ctime'], "%Y-%m-%d %H:%M:%S"))
-			    row['relation'] = byTramsmit_topicinfo
+				tramsmit_id = row.tramsmit_id
+				byTramsmit_topicinfo = self.mydb.getTopicInfo(tramsmit_id)   
+				byTramsmit_topicinfo['ptime'] = time.time()-time.mktime(time.strptime(byTramsmit_topicinfo['ctime'], "%Y-%m-%d %H:%M:%S"))
+				row['relation'] = byTramsmit_topicinfo
 			topic_data.append(row)
 		self.response_success(topic_data)

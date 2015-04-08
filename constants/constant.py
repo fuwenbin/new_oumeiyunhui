@@ -7,7 +7,7 @@ Created on 2015-1-7
 class Topic_Constants(object):
     
     closeout_ch = u'手动平仓'
-    copy_ing = u'开始复制'
+    copy_ing = u'开市复制'
     
     
     

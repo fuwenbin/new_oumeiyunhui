@@ -11,6 +11,7 @@ import time
 import json
 import re
 import logging
+import sys
 stop_server = False
 from utils.errors import Errors
 class getDataFromRedis(object):
@@ -27,10 +28,10 @@ class getDataFromRedis(object):
             print "there are no user data !!!!"
             return
         map_data = json.loads(jsondata)
-        sql_insert = "insert into user_info(userid,username) values (%s,'%s') on duplicate key update username = '%s' " % (map_data['user_code'], map_data['user_name'], map_data['user_name'])
+        sql_insert = "insert into user_info(userid,username) values (%s,%s) on duplicate key update username = %s "
         
-        print jsondata
-        self.conn.insert(sql_insert)
+        print >>sys.stdout, jsondata
+        self.conn.insert(sql_insert,map_data['user_code'], map_data['user_name'], map_data['user_name'])
         self.redis.lrem('social:openaccount', jsondata)
     def _handleTracdesdata(self):
         """

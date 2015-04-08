@@ -11,6 +11,7 @@ import tornado.web
 from tornado import httpserver
 import time
 import logging
+import logging.handlers
 from handler.mainhandler import MainHandler
 from handler.loginauthhandler import LoginAutheHandler
 import sys
@@ -34,7 +35,6 @@ class MyApplication(tornado.web.Application):
                        cookie_secret="YXRvbS50cmFkZSBpcyB0aGUgYmVzdAo=",
                        login_url="/login_url")
         self.conn = conn
-        self.conn.execute('SET time_zone="+8:00"')
         tornado.web.Application.__init__(self,handlers=handlers,**settings)
 #        self.add_handlers("http://192.168.1.59:5002", handlers)
         end = time.time()
@@ -60,8 +60,8 @@ def initConfigParams():
     return (server_port,log_path),(mysql_address,mysql_user,mysql_pwd),(redis_host,redis_port,redis_db,redis_pwd)
 
 def initConnectToMysql(hostaddress,user,password):
-    import torndb
-    dbConnected=torndb.Connection(hostaddress,'tiger_communicate',user,password,connect_timeout=1000)
+    from db.myconnection import MyConnection
+    dbConnected=MyConnection(hostaddress,'tiger_communicate',user,password,1000)
     return dbConnected
 
 def initLog(syslogpath):
