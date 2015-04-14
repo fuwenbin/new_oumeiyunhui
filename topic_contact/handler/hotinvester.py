@@ -21,6 +21,8 @@ class HotInvester(Processor):
             row['ptime'] = int(time.time()) - int(time.mktime(time.strptime(row['ctime'], "%Y-%m-%d %H:%M:%S")))
             topicType = row['topic_type']
             
+            row['tramsmit_list'] = self.mydb.getTopicTramsmitUlist(row['topicid'])
+            
             if row['content']:
                 row['content'] = filterSensitive(row['content'])
             if topicType == 0:

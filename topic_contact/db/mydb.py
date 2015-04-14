@@ -70,7 +70,7 @@ class MyDB():
             (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
             from topic_communicate_info w where (publisher_id = %s or 
             publisher_id in (SELECT by_attention_id FROM fans_rel WHERE fans_id = %s) or
-            publisher_id in (select by_follow_id from follow_topic where be_follow_id = %s)
+            publisher_id in (select by_follow_id from follow_topic where be_follow_id = %s) or
             )
             and
             state = 1 order by topicid desc limit %s,%s
@@ -78,24 +78,31 @@ class MyDB():
         return self.conn.query(sql_str)
     
             
-    def getTopicSupportSum(self,topicid):
+    def getTopicSupports(self,topicid):
         
-        sql_str = "select count(supporter_id) sum from support_rel where by_topicid = %s"
+        sql_str = "select supporter_id sum from support_rel where by_topicid = %s"
         
-        entity = self.conn.get(sql_str,topicid)
-        return entity.sum
+        entities = self.conn.query(sql_str,topicid)
+        return entities
     
-    def getTopicCommentSum(self,topicid):
+    def getTopicComments(self,topicid):
         '''获取被评论的topic的评论数'''
-        sql_str = "select count(comment_id) sum from comment_rel where by_topicid = %s and by_comment_id=0"
-        entity = self.conn.get(sql_str,topicid)
-        return entity.sum
+        sql_str = "select comment_id sum from comment_rel where by_topicid = %s and by_comment_id=0"
+        entities = self.conn.query(sql_str,topicid)
+        return entities
     
     def getTopicTramsmitSum(self,topicid):
         '''获取转发数量'''
         sql_str = "select count(topicid) from topic_communicate_info where tramsmit_id = %s"%topicid
         entity = self.conn.get(sql_str,topicid)
         return entity.sum
+    
+    def getTopicTramsmitUlist(self,topicid):
+        '''获取转发指定topic 的人 列表'''
+        sql_str = "select publisher_id from topic_communicate_info where tramsmit_id = %s"
+        entities = self.conn.query(sql_str,topicid)
+        return entities
+        
     
     def getTopicOfCommentLevel1(self,topicid,startindex,offset = 10):
         """获取对指定主题的直接所有评论"""
