@@ -68,10 +68,10 @@ class MyDB():
             (select count(topicid) from topic_communicate_info where tramsmit_id = w.topicid) as tramsmit_sum,
             (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
             (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
-            from topic_communicate_info w where (publisher_id = %s or 
-            publisher_id in (SELECT by_attention_id FROM fans_rel WHERE fans_id = %s) or
-            publisher_id in (select by_follow_id from follow_topic where be_follow_id = %s) or
-            )
+            from topic_communicate_info w where 
+            (publisher_id = %s or publisher_id in (SELECT by_attention_id FROM fans_rel WHERE fans_id = %s) 
+            or
+            publisher_id in (select by_follow_id from follow_topic where be_follow_id = %s))
             and
             state = 1 order by topicid desc limit %s,%s
             """%(usercode,usercode,usercode,startindex,offset)

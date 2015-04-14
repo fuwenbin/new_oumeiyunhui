@@ -24,6 +24,7 @@ class getDataFromRedis(object):
         jsondata = self.redis.brpoplpush('social:openaccount', 'social:openaccount')
         
         logging.info("user_data:"+jsondata)
+        print "user_data:%s"%jsondata
         if jsondata is None:
             print "there are no user data !!!!"
             return
@@ -46,7 +47,7 @@ class getDataFromRedis(object):
                     盈利率 =盈利/保证金
         """
         jsondata = self.redis.blpop('social:trades')
-        logging.info("trades_data:"+jsondata)
+        print "trades_data:%s"%jsondata
         if jsondata is None:
             print "there are no closeout data !!!!"
             return
@@ -83,6 +84,7 @@ class getDataFromRedis(object):
         
         jsondata = self.redis.brpop('social:copy')
         logging.info("copy_data:"+jsondata)
+        print "copy_data:%s"%jsondata
         if jsondata is None:
             print "there are no copy data !!!!"
             return
@@ -107,6 +109,7 @@ class getDataFromRedis(object):
          
         jsondata = self.redis.brpop('social:notification')
         logging.info("notify_data:"+jsondata)
+        print "notify_data:%s"%jsondata
         if jsondata is None:
             print "there are no copy data !!!!"
             return
