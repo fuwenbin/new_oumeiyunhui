@@ -194,9 +194,9 @@ class MyDB():
         return self.conn.execute_lastrowid(sql_str)    
     
     def commentTopic(self,usercode,topicid,bycommentid,content,ctime):
-        sql_str = '''insert into comment_info(comment_publisherid,by_topicid,by_comment_id,content,ctime) values(%s,%s,%s,'%s','%s')'''%(usercode,topicid,bycommentid,filterSqlSpecialWord(content),ctime)
+        sql_str = '''insert into comment_info(comment_publisherid,by_topicid,by_comment_id,content,ctime) values(%s,%s,%s,%s,%s)'''
         print sql_str
-        return self.conn.insert(sql_str)
+        return self.conn.insert(sql_str,usercode,topicid,bycommentid,filterSqlSpecialWord(content),ctime)
         
     def getTopicIdByCommentId(self,commentid):
         sql_str = '''select by_topicid from comment_info where comment_id = %s'''
@@ -244,8 +244,9 @@ class MyDB():
             (select count(supporter_id) from topic_support_rel where by_topicid = w.topicid) as support_sum,
             (select count(comment_id) from comment_info where by_topicid = w.topicid) as comment_sum
             from topic_communicate_info w where topicid IN 
-        (SELECT relation_key FROM atname_rel WHERE atstr = UPPER('%s')) 
-        order by topicid desc limit %s,%s'''%(symbol,startIndex,offset)
+            (SELECT relation_key FROM atname_rel WHERE atstr = UPPER('%s')) or
+            relation_key in (SELECT closeout_id FROM closeout_topic WHERE profit_point >=20 and out_type=UPPER('%s'))
+            order by topicid desc limit %s,%s'''%(symbol,symbol,startIndex,offset)
     
         return self.conn.query(sql_str)
     
@@ -314,7 +315,7 @@ class MyDB():
         return self.conn.update(sql_str)
     
     def updateUserMessage(self,usercode,msgId):
-        sql_str = """update user_message set visited = 0 where id = % and usercode = %s"""%(msgId,usercode)
+        sql_str = """update user_message set visited = 1 where id = %s and usercode = %s"""%(msgId,usercode)
         return self.conn.update(sql_str)
     def updateSysMessage(self,usercode,msgId):
         sql_str = """insert into msg_visited_rel (rel_id,ctime,usercode) values(%s,now(),%s)"""%(msgId,usercode)

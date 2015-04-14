@@ -38,8 +38,11 @@ def strB2Q(matched):
         rstring += unichr(inside_code)
     return rstring
 
+def filterplaceholder(content):
+    '''对% 符号进行过滤处理   主要在sql中防止参数中有%符号'''
+    byrep = re.sub(r'%', '%%', content)
 
-
-
+    return byrep
+# filterplaceholder('')
 #filterSqlSpecialWord("""asdfadsfasdfasd , , , [ [  ]]]  {}  ! #@ #　%  f<>>>>>>>>>>>>>""")
 #print strB2Q("""<>>>>>>""")
