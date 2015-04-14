@@ -46,7 +46,7 @@ class getDataFromRedis(object):
         
                     盈利率 =盈利/保证金
         """
-        jsondata = self.redis.blpop('social:trades')
+        jsondata = self.redis.blpop('social:trades2')
         print "trades_data:%s"%jsondata
         if jsondata is None:
             print "there are no closeout data !!!!"
@@ -143,7 +143,7 @@ class RedisThread(threading.Thread):
         while True:
             try:
                 self.work() 
-            except:
+            except: 
                 Errors.TraceErrorHandler(self)
     
     
