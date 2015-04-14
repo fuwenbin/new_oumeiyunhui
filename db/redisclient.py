@@ -24,11 +24,11 @@ class getDataFromRedis(object):
         jsondata = self.redis.brpoplpush('social:openaccount', 'social:openaccount')
         
         logging.info("user_data:"+jsondata)
-        print "user_data:%s"%jsondata
         if jsondata is None:
             print "there are no user data !!!!"
             return
         map_data = json.loads(jsondata)
+        print "user_data:%s"%map_data
         sql_insert = "insert into user_info(userid,username) values (%s,%s) on duplicate key update username = %s "
         
         print >>sys.stdout, jsondata
@@ -46,13 +46,13 @@ class getDataFromRedis(object):
         
                     盈利率 =盈利/保证金
         """
-        jsondata = self.redis.blpop('social:trades2')
-        print "trades_data:%s"%jsondata
+        jsondata = self.redis.blpop('social:trades100')
+        
         if jsondata is None:
             print "there are no closeout data !!!!"
             return
-        print jsondata
         map_data = json.loads(jsondata[1])
+        print "trades_data:%s"%map_data
         if not map_data.has_key('Usercode') :
             return
         usercode = map_data['Usercode']
@@ -76,7 +76,7 @@ class getDataFromRedis(object):
         sql_str = "insert into closeout_topic(out_type,profit_point,usercode) values('%s',%s,%s)"%(symbol,rate,usercode)
         rowid = self.conn.insert(sql_str)
         ctime = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
-        sql_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,'%s','%s',%s,%s,'%s',%s)"
+        sql_str = "insert into topic_communicate_info (publisher_id,publisher_name,content,topic_type,relation_key,ctime,is_public) values(%s,%s,%s,%s,%s,%s,%s)"
         self.conn.insert(sql_str,publisherid,'','',1,rowid,ctime,0)
     
     def _handleCopydata(self):
@@ -84,11 +84,11 @@ class getDataFromRedis(object):
         
         jsondata = self.redis.brpop('social:copy')
         logging.info("copy_data:"+jsondata)
-        print "copy_data:%s"%jsondata
         if jsondata is None:
             print "there are no copy data !!!!"
             return
         map_data = json.loads(jsondata[1])
+        print "copy_data:%s"%map_data
         fromcopy = map_data['from']
         to = map_data['to']
         type_copy = map_data['type']
@@ -109,13 +109,13 @@ class getDataFromRedis(object):
          
         jsondata = self.redis.brpop('social:notification')
         logging.info("notify_data:"+jsondata)
-        print "notify_data:%s"%jsondata
+        
         if jsondata is None:
             print "there are no copy data !!!!"
             return
         
         map_data = json.loads(jsondata[1])
-        
+        print "notify_data:%s"%map_data
         sql_str = "insert into sys_message(content,ctime,state,usercode) values(%s,%s,%s,%s)"
         
         
